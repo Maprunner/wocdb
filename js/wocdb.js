@@ -10,7 +10,6 @@
 /*jslint unparam:true*/
 var wocdb = (function (window, $) {
   'use strict';
-
   function init() {
     var year, type, raceid;
 

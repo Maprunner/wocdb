@@ -18,7 +18,10 @@
     template: _.template($('#race-header-tmpl').html()),
 
     render : function () {
-      $("#race-result-header-text").html(this.template(this.collection.models[0].attributes));
+      var model;
+      model = this.collection.models[0].attributes;
+      document.title = wocdb.utils.getType(model.wocid) + " " + model.year + " " + model.class + " " + model.race;
+      $("#race-result-header-text").html(this.template(model));
       return this;
     },
 

@@ -24,6 +24,7 @@
     },
 
     showAllWocs: function () {
+      document.title = "Maprunner WOC Database";
       $("#all-wocs-page").show();
       $("#single-woc-page").hide();
     }
