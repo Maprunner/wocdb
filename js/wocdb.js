@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * https://github.com/Maprunner/wocdb/blob/master/LICENSE
  */
-/*global location */
+// jshint unused:false
 /*jslint unparam:true*/
 var wocdb = (function (window, $) {
   'use strict';
@@ -14,28 +14,7 @@ var wocdb = (function (window, $) {
     var year, type, raceid;
 
     wocdb.router = new wocdb.WocdbRouter();
-    // All navigation that is relative should be passed through the navigate
-    // method, to be processed by the router. If the link has a `data-bypass`
-    // attribute, bypass the delegation completely.
-    // See https://gist.github.com/tbranyen/1142129
-    $(document).on("click", "a[href]:not([data-bypass])", function (evt) {
-      var href, root;
-      // Get the absolute anchor href.
-      href = {
-        prop : $(this).prop("href"),
-        attr : $(this).attr("href")
-      };
-      // Get the absolute root.
-      root = location.protocol + "//" + location.host + '/wocdb';
-
-      // Ensure the root is part of the anchor href, meaning it's relative.
-      if (href.prop.slice(0, root.length) === root) {
-        // Stop the default event to ensure the link will not cause a page
-        // refresh.
-        evt.preventDefault();
-        wocdb.router.navigate(href.attr, true);
-      }
-    });
+    wocdb.utils.hijackLinks();
 
     // create objects
     wocdb.dispatcher = _.clone(Backbone.Events);
@@ -65,8 +44,7 @@ var wocdb = (function (window, $) {
     });
     // start
     if (wocdb.config.bootstrapRaceResult) {
-      type = parseInt(wocdb.config.bootstrapRaceResult[0].wocid, 10);
-      type = type < 1000 ? "WOC" : "JWOC";
+      type = wocdb.utils.getType(parseInt(wocdb.config.bootstrapRaceResult[0].wocid, 10));
       year = parseInt(wocdb.config.bootstrapRaceResult[0].year, 10);
       raceid = parseInt(wocdb.config.bootstrapRaceResult[0].raceid, 10);
       wocdb.dispatcher.trigger("startup:race", {
