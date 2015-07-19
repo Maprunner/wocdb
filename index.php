@@ -9,6 +9,7 @@ if (strpos($s['SERVER_NAME'], 'localhost') !== FALSE) {
   $f3->set('minified', true);
   $f3->set('DEBUG', 0);
 }
+$f3->set('minFileModTime', filemtime(dirname(__FILE__).'/js/wocdb.min.js'));
 $f3->config('wocdb.ini');
 $f3->config('wocdb-routes.ini');
 
