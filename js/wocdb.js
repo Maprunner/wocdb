@@ -11,7 +11,7 @@
 var wocdb = (function (window, $) {
   'use strict';
   function init() {
-    var year, type, raceid;
+    var year, type, raceid, personid;
 
     wocdb.router = new wocdb.WocdbRouter();
     wocdb.utils.hijackLinks();
@@ -21,7 +21,9 @@ var wocdb = (function (window, $) {
     wocdb.races = new wocdb.Races();
     wocdb.wocs = new wocdb.Wocs();
     wocdb.raceResult = new wocdb.RaceResult();
+    wocdb.person = new wocdb.Person();
     wocdb.activeWOC = new wocdb.ActiveWOC();
+    wocdb.masterView = new wocdb.MasterView();
     wocdb.activeWOCView = new wocdb.ActiveWOCView({
       model : wocdb.activeWOC
     });
@@ -34,6 +36,9 @@ var wocdb = (function (window, $) {
     wocdb.raceMenuView = new wocdb.RaceMenuView({
       model : wocdb.activeWOC
     });
+    wocdb.personView = new wocdb.PersonView({
+      collection : wocdb.person
+    });
     wocdb.wocDbView = new wocdb.WOCDBView({
       collection : wocdb.wocs
     });
@@ -44,6 +49,7 @@ var wocdb = (function (window, $) {
     });
     // start
     if (wocdb.config.bootstrapRaceResult) {
+      wocdb.dispatcher.trigger("display:page", "single-woc-page");
       type = wocdb.utils.getType(parseInt(wocdb.config.bootstrapRaceResult[0].wocid, 10));
       year = parseInt(wocdb.config.bootstrapRaceResult[0].year, 10);
       raceid = parseInt(wocdb.config.bootstrapRaceResult[0].raceid, 10);
@@ -52,9 +58,17 @@ var wocdb = (function (window, $) {
         "year" : year,
         "raceid" : raceid
       });
-    } else {
-      wocdb.wocDbView.render();
+      return;
     }
+    if (wocdb.config.bootstrapPerson) {
+      wocdb.dispatcher.trigger("display:page", "person-page");
+      personid = parseInt(wocdb.config.bootstrapPerson[0].personid, 10);
+      wocdb.dispatcher.trigger("startup:person", {
+        "personid" : personid
+      });
+      return;
+    }
+    wocdb.dispatcher.trigger("display:page", "all-wocs-page");
   }
 
   return {

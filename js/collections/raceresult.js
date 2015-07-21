@@ -35,36 +35,46 @@
           this.raceIndex = 0;
         }
         this.announceNewRaceID();
+      }
+      // if we have a race loaded
+      if (this.length > 0) {
+        // but it isn't the requested one
+        if (this.models[0].raceid !== this.active.raceids[this.raceIndex]) {
+          // load the new race
+          this.loadRace();
+        }
       } else {
-        this.reset();
-        this.fetch();
+        this.loadRace();
       }
     },
 
     getPreviousRaceAtWOC: function () {
-      this.reset();
       this.raceIndex -= 1;
       if (this.raceIndex < 0) {
         this.raceIndex = this.active.races.length - 1;
       }
-      this.fetch();
+      this.loadRace();
     },
 
     getNextRaceAtWOC: function () {
-      this.reset();
       this.raceIndex += 1;
       if (this.raceIndex >= this.active.races.length) {
         this.raceIndex = 0;
       }
-      this.fetch();
+      this.loadRace();
     },
 
     getResultByRaceID : function (raceid) {
-      this.reset();
       this.raceIndex = _.indexOf(this.active.raceids, raceid);
       if (this.raceIndex === -1) {
         this.raceIndex = 0;
       }
+      this.loadRace();
+    },
+
+    loadRace: function () {
+      // load the new race
+      this.reset();
       this.fetch();
     }
   });

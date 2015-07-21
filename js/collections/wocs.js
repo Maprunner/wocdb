@@ -5,6 +5,7 @@
   wocdb.Wocs = Backbone.Collection.extend({
     initialize: function () {
       this.activeWOCIndex = null;
+      wocdb.dispatcher.on('click:showWOCID', this.setActiveWOCID, this);
       wocdb.dispatcher.on('click:showNextWOC', this.showNextWOC, this);
       wocdb.dispatcher.on('click:showPreviousWOC', this.showPreviousWOC, this);
       wocdb.dispatcher.on('startup:race', this.setActiveWOCAtStart, this);
@@ -13,6 +14,15 @@
     },
 
     model: wocdb.Woc,
+
+    setActiveWOCID: function (details) {
+      var model, info;
+      model = this.findWhere({id: details.wocid});
+      this.activeWocIndex = this.indexOf(model);
+      info = this.models[this.activeWocIndex].attributes;
+      info.startUpRaceID = details.raceid;
+      wocdb.dispatcher.trigger("change:activeWOC", info);
+    },
 
     setActiveWOCAtStart: function (details) {
       var model, info;

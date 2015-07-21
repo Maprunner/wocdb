@@ -13,7 +13,6 @@
     summaryTemplate: _.template($('#woc-summary-tmpl').html()),
 
     initialize: function () {
-      $('#single-woc-page').hide();
       this.listenTo(this.model, 'change', this.render);
     },
 
@@ -27,7 +26,6 @@
 
     render: function () {
       // fill in summary info
-      $("#single-woc-page").show();
       this.$el.html(this.summaryTemplate(this.model.attributes));
       return this;
     }

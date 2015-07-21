@@ -11,9 +11,9 @@
 
     initialize : function () {
       this.listenTo(this.collection, 'reset', this.render);
+      this.render();
     },
     render : function () {
-      this.$el.show();
       this.wocsTable = $('#wocs-table').DataTable({
         data : this.collection.models,
         "columns" : [{
@@ -75,7 +75,7 @@
     // click on row loads selected WOC details
     selectWOC: function (evt) {
       var index;
-      this.$el.hide();
+      wocdb.dispatcher.trigger("display:page", "single-woc-page");
       index = parseInt(evt.currentTarget.id, 10);
       this.collection.setActiveWOCIndex(index);
     }

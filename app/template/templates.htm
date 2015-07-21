@@ -39,6 +39,9 @@
 <script type="text/template" id="race-header-tmpl">
 <%= (wocid < 1000) ? 'WOC': 'JWOC' %> <%= year %> <%= gender %> <%= race %>
 </script>
+<script type="text/template" id="person-header-tmpl">
+Results for <%= name %>
+</script>
 <script type="text/template" id="race-result-tmpl">
-<td><%= position %></td><td><%= name %><td><%= country %></td><td><img src="<%= flag %>"></td><td><%= time %></td>
+<td><%= position %></td><td><%= name %><td><%= country %></td><td><img src="<%= flag %>"></td><td><%= time %><td><%= percentdown %></td>
 </script>

@@ -11,17 +11,20 @@
     },
 
     initialize : function () {
-      // create view once we have the data
-      wocdb.dispatcher.on('change:raceid', this.render, this);
+      // update view once we have the data
+      this.listenTo(this.collection, 'update', this.render);
+      wocdb.dispatcher.on('startup:race', this.render, this);
     },
 
     template: _.template($('#race-header-tmpl').html()),
 
     render : function () {
       var model;
-      model = this.collection.models[0].attributes;
-      document.title = wocdb.utils.getType(model.wocid) + " " + model.year + " " + model.class + " " + model.race;
-      $("#race-result-header-text").html(this.template(model));
+      if (this.collection.length) {
+        model = this.collection.models[0].attributes;
+        document.title = wocdb.utils.getType(model.wocid) + " " + model.year + " " + model.class + " " + model.race;
+        $("#race-result-header-text").html(this.template(model));
+      }
       return this;
     },
 

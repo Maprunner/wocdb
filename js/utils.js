@@ -3,6 +3,16 @@
 (function () {
   'use strict';
   var utils =  {
+
+    getVenue: function (wocid) {
+      var model;
+      model = wocdb.wocs.findWhere({"id": wocid});
+      if (model) {
+        return model.attributes.country;
+      }
+      return "";
+    },
+
     getType: function (wocid) {
       if (wocid < 1000) {
         return "WOC";

@@ -1,4 +1,4 @@
-// Version 0.1.0 2015-07-18T16:43:46;
+// Version 0.1.0 2015-07-21T18:21:55;
 /*
  * Maprunner  WOC Database
  * https://github.com/Maprunner/wocdb
@@ -7,44 +7,24 @@
  * Licensed under the MIT license.
  * https://github.com/Maprunner/wocdb/blob/master/LICENSE
  */
-/*global location */
+// jshint unused:false
 /*jslint unparam:true*/
 var wocdb = (function (window, $) {
   'use strict';
-
   function init() {
-    var year, type, raceid;
+    var year, type, raceid, personid;
 
     wocdb.router = new wocdb.WocdbRouter();
-    // All navigation that is relative should be passed through the navigate
-    // method, to be processed by the router. If the link has a `data-bypass`
-    // attribute, bypass the delegation completely.
-    // See https://gist.github.com/tbranyen/1142129
-    $(document).on("click", "a[href]:not([data-bypass])", function (evt) {
-      var href, root;
-      // Get the absolute anchor href.
-      href = {
-        prop : $(this).prop("href"),
-        attr : $(this).attr("href")
-      };
-      // Get the absolute root.
-      root = location.protocol + "//" + location.host + '/wocdb';
-
-      // Ensure the root is part of the anchor href, meaning it's relative.
-      if (href.prop.slice(0, root.length) === root) {
-        // Stop the default event to ensure the link will not cause a page
-        // refresh.
-        evt.preventDefault();
-        wocdb.router.navigate(href.attr, true);
-      }
-    });
+    wocdb.utils.hijackLinks();
 
     // create objects
     wocdb.dispatcher = _.clone(Backbone.Events);
     wocdb.races = new wocdb.Races();
     wocdb.wocs = new wocdb.Wocs();
     wocdb.raceResult = new wocdb.RaceResult();
+    wocdb.person = new wocdb.Person();
     wocdb.activeWOC = new wocdb.ActiveWOC();
+    wocdb.masterView = new wocdb.MasterView();
     wocdb.activeWOCView = new wocdb.ActiveWOCView({
       model : wocdb.activeWOC
     });
@@ -57,6 +37,9 @@ var wocdb = (function (window, $) {
     wocdb.raceMenuView = new wocdb.RaceMenuView({
       model : wocdb.activeWOC
     });
+    wocdb.personView = new wocdb.PersonView({
+      collection : wocdb.person
+    });
     wocdb.wocDbView = new wocdb.WOCDBView({
       collection : wocdb.wocs
     });
@@ -67,8 +50,8 @@ var wocdb = (function (window, $) {
     });
     // start
     if (wocdb.config.bootstrapRaceResult) {
-      type = parseInt(wocdb.config.bootstrapRaceResult[0].wocid, 10);
-      type = type < 1000 ? "WOC" : "JWOC";
+      wocdb.dispatcher.trigger("display:page", "single-woc-page");
+      type = wocdb.utils.getType(parseInt(wocdb.config.bootstrapRaceResult[0].wocid, 10));
       year = parseInt(wocdb.config.bootstrapRaceResult[0].year, 10);
       raceid = parseInt(wocdb.config.bootstrapRaceResult[0].raceid, 10);
       wocdb.dispatcher.trigger("startup:race", {
@@ -76,9 +59,17 @@ var wocdb = (function (window, $) {
         "year" : year,
         "raceid" : raceid
       });
-    } else {
-      wocdb.wocDbView.render();
+      return;
     }
+    if (wocdb.config.bootstrapPerson) {
+      wocdb.dispatcher.trigger("display:page", "person-page");
+      personid = parseInt(wocdb.config.bootstrapPerson[0].personid, 10);
+      wocdb.dispatcher.trigger("startup:person", {
+        "personid" : personid
+      });
+      return;
+    }
+    wocdb.dispatcher.trigger("display:page", "all-wocs-page");
   }
 
   return {
@@ -130,51 +121,46 @@ var wocdb = (function (window, $) {
 (function () {
   'use strict';
   wocdb.Result = Backbone.Model.extend({
-    abbrevList: ["ARG", "AUS", "AUT", "AZE", "BAR", "BEL", "BLR", "BRA", "BUL", "CAN", "CHI", "CHN", "COL", "CRO", "CYP", "CZE", "DEN",
-                    "ECU", "ESP", "EST", "FIN", "FRA", "GBR", "GEO", "GER", "GRE", "HKG", "HUN", "IRL", "ISR", "ITA", "JPN", "KAZ", "KOR",
-                    "LAT", "LTU", "MDA", "MKD", "MNE", "NED", "NOR", "NZL", "POL", "POR", "PRK", "ROU", "RSA", "RUS", "SCG", "SLO", "SRB",
-                    "SUI", "SVK", "SWE", "TPE", "TUR", "UKR", "URU", "USA"],
-    filePrefix: ["ar", "au", "at", "az", "bb", "be", "by", "br", "bg", "ca", "cl", "cn", "co", "hr", "cy", "cz", "dk",
-                 "ec", "es", "ee", "fi", "fr", "gb", "ge", "de", "gr", "hk", "hu", "ie", "il", "it", "jp", "kg", "kr",
-                 "lv", "lt", "md", "mk", "me", "nl", "no", "nz", "pl", "pt", "kp", "ro", "za", "ru", "xx", "si", "rs",
-                 "ch", "sk", "se", "tw", "tr", "ua", "uy", "us"],
 
     initialize : function () {
-      var flagFile = this.getFlagFile(this.attributes.country);
-      this.attributes.flag = wocdb.config.url + 'img/' + flagFile + '.png';
+      this.attributes.flag = wocdb.utils.getFlagFile(this.attributes.country);
       if (this.attributes.final > 0) {
         if (this.attributes.position < 4) {
           this.attributes.position = '<img src="' + wocdb.config.url + 'img/' + this.attributes.position + '.svg">';
         }
       }
+      this.attributes.percentdown = parseFloat(this.attributes.percentdown).toFixed(1);
       // needed to get round problem with reserved words in templates!
       this.attributes.gender = this.attributes.class;
-    },
-    getFlagFile: function (abbrev) {
-      var index;
-      index = this.abbrevList.indexOf(abbrev);
-      if (index !== -1) {
-        return this.filePrefix[index];
-      }
-      return "xx";
     }
+
   });
 }());
-/*global wocdb:false, wocdbconfig */
+/*global wocdb:false */
 (function () {
   'use strict';
 
   wocdb.Wocs = Backbone.Collection.extend({
     initialize: function () {
       this.activeWOCIndex = null;
+      wocdb.dispatcher.on('click:showWOCID', this.setActiveWOCID, this);
       wocdb.dispatcher.on('click:showNextWOC', this.showNextWOC, this);
       wocdb.dispatcher.on('click:showPreviousWOC', this.showPreviousWOC, this);
       wocdb.dispatcher.on('startup:race', this.setActiveWOCAtStart, this);
-      this.reset(wocdbconfig.bootstrapWocs);
+      this.reset(wocdb.config.bootstrapWocs);
       this.createRaceCollection();
     },
 
     model: wocdb.Woc,
+
+    setActiveWOCID: function (details) {
+      var model, info;
+      model = this.findWhere({id: details.wocid});
+      this.activeWocIndex = this.indexOf(model);
+      info = this.models[this.activeWocIndex].attributes;
+      info.startUpRaceID = details.raceid;
+      wocdb.dispatcher.trigger("change:activeWOC", info);
+    },
 
     setActiveWOCAtStart: function (details) {
       var model, info;
@@ -289,36 +275,46 @@ var wocdb = (function (window, $) {
           this.raceIndex = 0;
         }
         this.announceNewRaceID();
+      }
+      // if we have a race loaded
+      if (this.length > 0) {
+        // but it isn't the requested one
+        if (this.models[0].raceid !== this.active.raceids[this.raceIndex]) {
+          // load the new race
+          this.loadRace();
+        }
       } else {
-        this.reset();
-        this.fetch();
+        this.loadRace();
       }
     },
 
     getPreviousRaceAtWOC: function () {
-      this.reset();
       this.raceIndex -= 1;
       if (this.raceIndex < 0) {
         this.raceIndex = this.active.races.length - 1;
       }
-      this.fetch();
+      this.loadRace();
     },
 
     getNextRaceAtWOC: function () {
-      this.reset();
       this.raceIndex += 1;
       if (this.raceIndex >= this.active.races.length) {
         this.raceIndex = 0;
       }
-      this.fetch();
+      this.loadRace();
     },
 
     getResultByRaceID : function (raceid) {
-      this.reset();
       this.raceIndex = _.indexOf(this.active.raceids, raceid);
       if (this.raceIndex === -1) {
         this.raceIndex = 0;
       }
+      this.loadRace();
+    },
+
+    loadRace: function () {
+      // load the new race
+      this.reset();
       this.fetch();
     }
   });
@@ -338,7 +334,6 @@ var wocdb = (function (window, $) {
     summaryTemplate: _.template($('#woc-summary-tmpl').html()),
 
     initialize: function () {
-      $('#single-woc-page').hide();
       this.listenTo(this.model, 'change', this.render);
     },
 
@@ -352,7 +347,6 @@ var wocdb = (function (window, $) {
 
     render: function () {
       // fill in summary info
-      $("#single-woc-page").show();
       this.$el.html(this.summaryTemplate(this.model.attributes));
       return this;
     }
@@ -373,9 +367,9 @@ var wocdb = (function (window, $) {
 
     initialize : function () {
       this.listenTo(this.collection, 'reset', this.render);
+      this.render();
     },
     render : function () {
-      this.$el.show();
       this.wocsTable = $('#wocs-table').DataTable({
         data : this.collection.models,
         "columns" : [{
@@ -437,7 +431,7 @@ var wocdb = (function (window, $) {
     // click on row loads selected WOC details
     selectWOC: function (evt) {
       var index;
-      this.$el.hide();
+      wocdb.dispatcher.trigger("display:page", "single-woc-page");
       index = parseInt(evt.currentTarget.id, 10);
       this.collection.setActiveWOCIndex(index);
     }
@@ -456,9 +450,187 @@ var wocdb = (function (window, $) {
     template: _.template($('#race-result-tmpl').html()),
 
     render: function () {
-      this.$el.html(this.template(this.model.attributes));
+      this.$el.html(this.template(this.model.attributes)).attr('id', this.model.attributes.personid);
       return this;
     }
+  });
+}());
+
+/*global wocdb:false */
+/*global location */
+(function () {
+  'use strict';
+  var utils =  {
+
+    getVenue: function (wocid) {
+      var model;
+      model = wocdb.wocs.findWhere({"id": wocid});
+      if (model) {
+        return model.attributes.country;
+      }
+      return "";
+    },
+
+    getType: function (wocid) {
+      if (wocid < 1000) {
+        return "WOC";
+      }
+      return "JWOC";
+    },
+
+    abbrevList: ["ARG", "AUS", "AUT", "AZE", "BAR", "BEL", "BLR", "BRA", "BUL", "CAN", "CHI", "CHN", "COL", "CRO", "CYP", "CZE", "DEN",
+                    "ECU", "ESP", "EST", "FIN", "FRA", "GBR", "GEO", "GER", "GRE", "HKG", "HUN", "IRL", "ISR", "ITA", "JPN", "KAZ", "KOR",
+                    "LAT", "LTU", "MDA", "MKD", "MNE", "NED", "NOR", "NZL", "POL", "POR", "PRK", "ROU", "RSA", "RUS", "SCG", "SLO", "SRB",
+                    "SUI", "SVK", "SWE", "TPE", "TUR", "UKR", "URU", "USA"],
+
+    filePrefix: ["ar", "au", "at", "az", "bb", "be", "by", "br", "bg", "ca", "cl", "cn", "co", "hr", "cy", "cz", "dk",
+                 "ec", "es", "ee", "fi", "fr", "gb", "ge", "de", "gr", "hk", "hu", "ie", "il", "it", "jp", "kg", "kr",
+                 "lv", "lt", "md", "mk", "me", "nl", "no", "nz", "pl", "pt", "kp", "ro", "za", "ru", "xx", "si", "rs",
+                 "ch", "sk", "se", "tw", "tr", "ua", "uy", "us"],
+
+    // passed in GBR, returns gb, to allow png flag file referencing
+    getFlagFile: function (abbrev) {
+      var index, prefix;
+      prefix = "xx";
+      index = this.abbrevList.indexOf(abbrev);
+      if (index !== -1) {
+        prefix = this.filePrefix[index];
+      }
+      return wocdb.config.url + 'img/' + prefix + '.png';
+    },
+
+    // All navigation that is relative should be passed through the navigate
+    // method, to be processed by the router. If the link has a `data-bypass`
+    // attribute, bypass the delegation completely.
+    // See https://gist.github.com/tbranyen/1142129
+    hijackLinks: function () {
+      $(document).on("click", "a[href]:not([data-bypass])", function (evt) {
+        var href, root;
+        // Get the absolute anchor href.
+        href = {
+          prop : $(this).prop("href"),
+          attr : $(this).attr("href")
+        };
+        // Get the absolute root.
+        root = location.protocol + "//" + location.host + '/wocdb';
+
+        // Ensure the root is part of the anchor href, meaning it's relative.
+        if (href.prop.slice(0, root.length) === root) {
+          // Stop the default event to ensure the link will not cause a page
+          // refresh.
+          evt.preventDefault();
+          wocdb.router.navigate(href.attr, true);
+        }
+      });
+    }
+  };
+  wocdb.utils = utils;
+}());
+
+/*global wocdb:false */
+(function () {
+  'use strict';
+  /*jslint unparam: true */
+  wocdb.PersonView = Backbone.View.extend({
+    el : '#person-page',
+
+    events: {
+      'click #person-table tbody tr': 'selectWOCRace'
+    },
+
+    headerTemplate: _.template($('#person-header-tmpl').html()),
+
+    initialize : function () {
+      this.listenTo(this.collection, 'update', this.render);
+      wocdb.dispatcher.on('startup:person', this.render, this);
+    },
+
+    render : function () {
+      if (this.personTable) {
+        this.personTable.destroy();
+      }
+      this.$("#person-header").empty().html(this.headerTemplate(this.collection.models[0].attributes));
+      this.personTable = $('#person-table').empty().DataTable({
+        data : this.collection.models,
+        paging: false,
+        info: false,
+        columns : [{
+          "data" : function (row) {
+            return row.get("year");
+          },
+          "title" : "Year"
+        }, {
+          "data" : function (row) {
+            return wocdb.utils.getType(row.get("wocid"));
+          },
+          "title" : "Event"
+        }, {
+          "data" : function (row) {
+            return wocdb.utils.getVenue(row.get("wocid"));
+          },
+          "title" : "Venue"
+        }, {
+          "data" : function (row) {
+            return row.get("class");
+          },
+          "title" : "Class"
+        }, {
+          "data" : function (row) {
+            return row.get("race");
+          },
+          "title" : "Race"
+        }, {
+          "data" : function (row) {
+            if (row.get("position") === 999) {
+              return "-";
+            }
+            return row.get("position");
+          },
+          "title" : "Place"
+        }, {
+          "data" : function (row) {
+            return row.get("name");
+          },
+          "title" : "Name"
+        }, {
+          "data" : function (row) {
+            return row.get("country");
+          },
+          "title" : "Country"
+        }, {
+          "data" : function (row) {
+            return "<img src='" + row.get("flag") + "'>";
+          },
+          "title" : ""
+        }, {
+          "data" : function (row) {
+            return row.get("time");
+          },
+          "title" : "Time"
+        }],
+        "createdRow": function (row, data) {
+          // add wocid to newly created row
+          $(row).attr('wocid', data.attributes.wocid).attr('raceid', data.attributes.raceid);
+        },
+        "order" : [[0, 'desc'], [1, 'desc']],
+        'autoWidth' : true,
+        'searching' : false,
+        "columnDefs" : [{
+          className : "dt-center",
+          "targets" : [0, 1, 5, 7, 9]
+        }]
+      });
+    },
+
+    // click on row loads selected WOC race details
+    selectWOCRace: function (evt) {
+      var wocid, raceid;
+      wocdb.dispatcher.trigger("display:page", "single-woc-page");
+      wocid = parseInt($(evt.currentTarget).attr('wocid'), 10);
+      raceid = parseInt($(evt.currentTarget).attr('raceid'), 10);
+      wocdb.dispatcher.trigger("click:showWOCID", {'wocid': wocid, 'raceid': raceid});
+    }
+
   });
 }());
 
@@ -469,15 +641,20 @@ var wocdb = (function (window, $) {
   wocdb.RaceResultView = Backbone.View.extend({
     el : '#result-table',
 
+    events: {
+      'click tr': 'selectPerson'
+    },
+
     initialize : function () {
       // create view once we have the data
       //this.listenTo(this.collection, 'sync', this.render);
-      wocdb.dispatcher.on('change:raceid', this.render, this);
+      this.listenTo(this.collection, 'update', this.render);
+      wocdb.dispatcher.on('startup:race', this.render, this);
     },
 
     render : function () {
       var i, view;
-      this.$el.empty();
+      this.$el.empty().html("<thead><th>Pos</th><th>Name</th><th>Country</th><th></th><th>Time</th><th>% down</th></thead>");
       if (this.collection.length > 0) {
         for (i = 0; i < this.collection.length; i += 1) {
           view = new wocdb.ResultView({model: this.collection.at(i)});
@@ -487,9 +664,18 @@ var wocdb = (function (window, $) {
       } else {
         this.$el.append('No records found.');
       }
+      // attach events to new set of results
+      this.delegateEvents();
       return this;
-    }
+    },
 
+    // click on row loads selected person
+    selectPerson: function (evt) {
+      var index;
+      wocdb.dispatcher.trigger("display:page", "person-page");
+      index = parseInt(evt.currentTarget.id, 10);
+      wocdb.dispatcher.trigger('change:person', index);
+    }
   });
 }());
 
@@ -506,14 +692,20 @@ var wocdb = (function (window, $) {
     },
 
     initialize : function () {
-      // create view once we have the data
-      wocdb.dispatcher.on('change:raceid', this.render, this);
+      // update view once we have the data
+      this.listenTo(this.collection, 'update', this.render);
+      wocdb.dispatcher.on('startup:race', this.render, this);
     },
 
     template: _.template($('#race-header-tmpl').html()),
 
     render : function () {
-      $("#race-result-header-text").html(this.template(this.collection.models[0].attributes));
+      var model;
+      if (this.collection.length) {
+        model = this.collection.models[0].attributes;
+        document.title = wocdb.utils.getType(model.wocid) + " " + model.year + " " + model.class + " " + model.race;
+        $("#race-result-header-text").html(this.template(model));
+      }
       return this;
     },
 
@@ -579,7 +771,13 @@ var wocdb = (function (window, $) {
       "wocdb": "showAllWocs",
       "woc/:year/:gender/:race": "getWOCResult",
       "jwoc/:year/:gender/:race": "getJWOCResult",
+      "person/:person": "getPerson",
       "*other": "showAllWocs"
+    },
+
+    getPerson: function (person) {
+      this.getPerson(person);
+      wocdb.dispatcher.trigger("display:page", "person-page");
     },
 
     getWOCResult: function (year, gender, race) {
@@ -592,13 +790,74 @@ var wocdb = (function (window, $) {
 
     getResult: function (type, year, gender, race) {
       var raceid;
+      wocdb.dispatcher.trigger("display:page", "single-woc-page");
       raceid = wocdb.races.getRaceID(type, year, gender, race);
       wocdb.raceResult.getResultByRaceID(raceid);
     },
 
     showAllWocs: function () {
-      $("#all-wocs-page").show();
-      $("#single-woc-page").hide();
+      document.title = "Maprunner WOC Database";
+      wocdb.dispatcher.trigger("display:page", "all-wocs-page");
     }
+  });
+}());
+
+/*global wocdb:false  */
+(function () {
+  'use strict';
+  wocdb.Person = Backbone.Collection.extend({
+    initialize: function () {
+      wocdb.dispatcher.on("change:person", this.getPerson, this);
+      // load results if they were provided in HTML at start-up
+      this.reset(wocdb.config.bootstrapPerson);
+      if (this.length > 0) {
+        this.personid = this.models[0].personid;
+      } else {
+        this.personid = null;
+      }
+    },
+
+    url: function () {
+      return wocdb.config.url + 'person/' + this.personid;
+    },
+
+    model: wocdb.Result,
+
+    getPerson : function (person) {
+      this.reset();
+      this.personid = person;
+      wocdb.router.navigate('person/' + this.personid);
+      this.fetch();
+    }
+  });
+}());
+/*global wocdb:false */
+(function () {
+  'use strict';
+  wocdb.MasterView = Backbone.View.extend({
+    el : '#wocdb-container',
+
+    pages: ['all-wocs-page', 'single-woc-page', 'person-page'],
+
+    initialize : function () {
+      wocdb.dispatcher.on('display:page', this.setPageVisibility, this);
+    },
+
+    setPageVisibility: function (page) {
+      // display requested page and hide all others
+      _.each(this.pages, this.setDisplay, page);
+    },
+
+    setDisplay: function (testPage) {
+      var displayType;
+      // this comes in as the page name we have been asked to display
+      if (testPage === this) {
+        displayType = "block";
+      } else {
+        displayType = "none";
+      }
+      $('#' + testPage).css("display", displayType);
+    }
+
   });
 }());

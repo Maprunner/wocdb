@@ -3,8 +3,8 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 <check if="{{ @minified }}">
 <true>
-<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.2.1/backbone.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.2.1/backbone-min.js"></script>
 <script src="js/wocdb.min.js?{{ @minFileModTime }}"></script>
 </true>
 <false>
@@ -18,9 +18,12 @@
 <script src="js/models/result.js"></script>
 <script src="js/collections/wocs.js"></script>
 <script src="js/collections/races.js"></script>
+<script src="js/collections/person.js"></script>
 <script src="js/collections/raceResult.js"></script>
 <script src="js/views/active-woc-view.js"></script>
 <script src="js/views/wocdb-view.js"></script>
+<script src="js/views/master-view.js"></script>
+<script src="js/views/person-view.js"></script>
 <script src="js/views/result-view.js"></script>
 <script src="js/views/race-result-view.js"></script>
 <script src="js/views/race-header-view.js"></script>
@@ -33,6 +36,9 @@ wocdb.config = {
   url: "{{ @base }}",
 <check if="{{ isset(@racedata) }}">
   <true>bootstrapRaceResult: {{ @racedata | raw }},</true>
+</check>
+<check if="{{ isset(@persondata) }}">
+  <true>bootstrapPerson: {{ @persondata | raw }},</true>
 </check>
   bootstrapWocs: {{ @wocs | raw }}
 }
