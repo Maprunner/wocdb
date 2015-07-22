@@ -34,7 +34,7 @@
 </div>
 </script>
 <script type="text/template" id="race-menu-tmpl">
-<li role="presentation" id="<%= raceid %>"><a href="<%= type.toLowerCase() %>/<%= year %>/<%= gender.toLowerCase() %>/<%= race.toLowerCase() %>"><%= gender %> <%= race %></a></li>
+<a id="<%= raceid %>" class="list-group-item" href="<%= type.toLowerCase() %>/<%= year %>/<%= gender.toLowerCase() %>/<%= race.toLowerCase() %>"><%= gender %> <%= race %></a>
 </script>
 <script type="text/template" id="race-header-tmpl">
 <%= (wocid < 1000) ? 'WOC': 'JWOC' %> <%= year %> <%= gender %> <%= race %>

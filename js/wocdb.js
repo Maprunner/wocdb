@@ -11,7 +11,7 @@
 var wocdb = (function (window, $) {
   'use strict';
   function init() {
-    var year, type, raceid, personid;
+    var year, type, raceid, personid, country;
 
     wocdb.router = new wocdb.WocdbRouter();
     wocdb.utils.hijackLinks();
@@ -22,6 +22,7 @@ var wocdb = (function (window, $) {
     wocdb.wocs = new wocdb.Wocs();
     wocdb.raceResult = new wocdb.RaceResult();
     wocdb.person = new wocdb.Person();
+    wocdb.runners = new wocdb.Runners();
     wocdb.activeWOC = new wocdb.ActiveWOC();
     wocdb.masterView = new wocdb.MasterView();
     wocdb.activeWOCView = new wocdb.ActiveWOCView({
@@ -35,6 +36,9 @@ var wocdb = (function (window, $) {
     });
     wocdb.raceMenuView = new wocdb.RaceMenuView({
       model : wocdb.activeWOC
+    });
+    wocdb.runnersView = new wocdb.RunnersView({
+      collection : wocdb.runners
     });
     wocdb.personView = new wocdb.PersonView({
       collection : wocdb.person
@@ -65,6 +69,15 @@ var wocdb = (function (window, $) {
       personid = parseInt(wocdb.config.bootstrapPerson[0].personid, 10);
       wocdb.dispatcher.trigger("startup:person", {
         "personid" : personid
+      });
+      return;
+    }
+    if (wocdb.config.bootstrapRunners) {
+      wocdb.dispatcher.trigger("display:page", "country-page");
+      country = parseInt(wocdb.config.bootstrapRunners[0].country, 10);
+      wocdb.dispatcher.trigger("startup:runners", {
+        "type": "person",
+        "country": country
       });
       return;
     }

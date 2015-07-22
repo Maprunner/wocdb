@@ -7,12 +7,18 @@
       "woc/:year/:gender/:race": "getWOCResult",
       "jwoc/:year/:gender/:race": "getJWOCResult",
       "person/:person": "getPerson",
+      "runners/:type/:country": "getRunnersByCountry",
       "*other": "showAllWocs"
     },
 
     getPerson: function (person) {
       this.getPerson(person);
       wocdb.dispatcher.trigger("display:page", "person-page");
+    },
+
+    getRunnersByCountry: function (type, country) {
+      wocdb.runners.getRunnersByCountry(type, country);
+      wocdb.dispatcher.trigger("display:page", "country-page");
     },
 
     getWOCResult: function (year, gender, race) {

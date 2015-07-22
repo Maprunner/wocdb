@@ -13,6 +13,7 @@ public static function getStartPage($f3) {
   // preload list of WOCS: always needed
   $wocdata = self::getWOCS($f3);
   $f3->set('wocs', $wocdata);
+  $f3->set('countries', self::getCountries($f3));
   // serve full page
   $f3->set('content','app/template/wocdb.htm');
   echo Template::instance()->render('/app/template/page.htm');
@@ -43,6 +44,14 @@ private static function getWOCs($f3) {
     $record = $record->cast();
   }
   return json_encode($data);
+}
+
+private static function getCountries($f3) {
+  $db = $f3->get("db.instance");
+  $resultTable = new DB\SQL\Mapper($db,'result');
+  $data=$db->exec('SELECT DISTINCT country FROM result ORDER BY country ASC');
+  // return each country in a single array
+  return json_encode(array_column($data, "country"));
 }
 
 }

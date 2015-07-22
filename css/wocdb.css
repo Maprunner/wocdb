@@ -27,6 +27,10 @@ body {
   padding: 5px;
 }
 
+#dropdown-country {
+  color: black;
+}
+
 .brandname {
   float: left;
   height: 50px;
