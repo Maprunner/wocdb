@@ -17,11 +17,13 @@
 <script src="js/models/race.js"></script>
 <script src="js/models/runner.js"></script>
 <script src="js/models/result.js"></script>
+<script src="js/models/best.js"></script>
 <script src="js/collections/wocs.js"></script>
 <script src="js/collections/runners.js"></script>
 <script src="js/collections/races.js"></script>
 <script src="js/collections/person.js"></script>
-<script src="js/collections/raceResult.js"></script>
+<script src="js/collections/raceresult.js"></script>
+<script src="js/collections/bestlist.js"></script>
 <script src="js/views/active-woc-view.js"></script>
 <script src="js/views/wocdb-view.js"></script>
 <script src="js/views/master-view.js"></script>
@@ -31,6 +33,7 @@
 <script src="js/views/race-result-view.js"></script>
 <script src="js/views/race-header-view.js"></script>
 <script src="js/views/race-menu-view.js"></script>
+<script src="js/views/best-view.js"></script>
 <script src="js/routers/router.js"></script>
 </false>
 </check>
@@ -42,6 +45,9 @@ wocdb.config = {
 </check>
 <check if="{{ isset(@persondata) }}">
   <true>bootstrapPerson: {{ @persondata | raw }},</true>
+</check>
+<check if="{{ isset(@bestdata) }}">
+  <true>bootstrapBestList: {{ @bestdata | raw }},</true>
 </check>
 <check if="{{ isset(@runnerdata) }}">
   <true>bootstrapRunners: {{ @runnerdata | raw }},</true>

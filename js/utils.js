@@ -13,11 +13,59 @@
       return "";
     },
 
+    capitalise: function (text) {
+      if (text) {
+        return text[0].toUpperCase() + text.substring(1);
+      }
+      return "";
+    },
+
     getType: function (wocid) {
       if (wocid < 1000) {
         return "WOC";
       }
       return "JWOC";
+    },
+
+    getTypesDropdown: function () {
+      var dropdown;
+      dropdown = _.reduce(["WOC", "JWOC"], this.createTypeDropdownHTML, "");
+      return dropdown;
+    },
+
+    createTypeDropdownHTML: function (html, type) {
+      return html + "<li type='" + type + "'><a>" + type + "</a></li>";
+    },
+
+    getClassesDropdown: function () {
+      var dropdown;
+      dropdown = _.reduce(["Men", "Women", "Mixed"], this.createClassDropdownHTML, "");
+      return dropdown;
+    },
+
+    createClassDropdownHTML: function (html, gender) {
+      return html + "<li class='" + gender + "'><a>" + gender + "</a></li>";
+    },
+
+    getRacesDropdown: function () {
+      var dropdown;
+      dropdown = _.reduce(["Long", "Middle", "Sprint", "Relay", "SprintRelay"], this.createRaceDropdownHTML, "");
+      return dropdown;
+    },
+
+    createRaceDropdownHTML: function (html, race) {
+      return html + "<li race='" + race + "'><a>" + race + "</a></li>";
+    },
+
+
+    getCountriesDropdown: function (startHTML) {
+      var dropdown;
+      dropdown = _.reduce(wocdb.config.countries, this.createCountryDropdownHTML, startHTML);
+      return dropdown;
+    },
+
+    createCountryDropdownHTML: function (html, country) {
+      return html + "<li country='" + country + "'><a>" + country + "</a></li>";
     },
 
     abbrevList: ["ARG", "AUS", "AUT", "AZE", "BAR", "BEL", "BLR", "BRA", "BUL", "CAN", "CHI", "CHN", "COL", "CRO", "CYP", "CZE", "DEN",

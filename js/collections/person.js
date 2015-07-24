@@ -20,7 +20,6 @@
     model: wocdb.Result,
 
     getPerson : function (person) {
-      this.reset();
       this.personid = person;
       wocdb.router.navigate('person/' + this.personid);
       this.fetch();

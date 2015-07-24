@@ -16,13 +16,8 @@
       var dropdown;
       this.listenTo(this.collection, 'update', this.render);
       wocdb.dispatcher.on('startup:runners', this.render, this);
-      dropdown = "";
-      dropdown = _.reduce(wocdb.config.countries, this.createDropdownHTML, "");
+      dropdown = wocdb.utils.getCountriesDropdown("");
       this.$("#countries").empty().html(dropdown);
-    },
-
-    createDropdownHTML: function (html, country) {
-      return html + "<li country='" + country + "'><a>" + country + "</a></li>";
     },
 
     render : function () {
@@ -30,7 +25,7 @@
         this.countryTable.destroy();
       }
       this.$("#country-header-text").empty().html("Runners for " + this.collection.models[0].attributes.country);
-      this.$("#dropdown-country").empty().html(this.collection.models[0].attributes.country);
+      this.$("#dropdown-country").empty().html(this.collection.models[0].attributes.country + ' <span class="caret">');
       //text = 'Results by Country : The database tries to merge people who have run under several names into a single person. \
       //        Search by Name to see all known name variations (Yvette Hague and Yvette Baker as two separate entries),
       //        or by Person to see merged information (Yvette Hague as a single entry, including all other known name variations).
@@ -95,7 +90,7 @@
       wocdb.dispatcher.trigger("change:person", personid);
     },
 
-    // click on row loads selected person
+    // click on row loads selected country
     selectCountry: function (evt) {
       var country;
       country = $(evt.currentTarget).attr('country').toLowerCase();

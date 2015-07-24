@@ -1,4 +1,4 @@
-// Version 0.1.0 2015-07-22T21:43:20;
+// Version 0.1.0 2015-07-24T20:16:32;
 /*
  * Maprunner  WOC Database
  * https://github.com/Maprunner/wocdb
@@ -24,6 +24,7 @@ var wocdb = (function (window, $) {
     wocdb.raceResult = new wocdb.RaceResult();
     wocdb.person = new wocdb.Person();
     wocdb.runners = new wocdb.Runners();
+    wocdb.bestlist = new wocdb.BestList();
     wocdb.activeWOC = new wocdb.ActiveWOC();
     wocdb.masterView = new wocdb.MasterView();
     wocdb.activeWOCView = new wocdb.ActiveWOCView({
@@ -40,6 +41,9 @@ var wocdb = (function (window, $) {
     });
     wocdb.runnersView = new wocdb.RunnersView({
       collection : wocdb.runners
+    });
+    wocdb.bestView = new wocdb.BestView({
+      collection : wocdb.bestlist
     });
     wocdb.personView = new wocdb.PersonView({
       collection : wocdb.person
@@ -80,6 +84,11 @@ var wocdb = (function (window, $) {
         "type": "person",
         "country": country
       });
+      return;
+    }
+    if (wocdb.config.bootstrapBestList) {
+      wocdb.dispatcher.trigger("display:page", "best-page");
+      wocdb.dispatcher.trigger("startup:best");
       return;
     }
     wocdb.dispatcher.trigger("display:page", "all-wocs-page");
@@ -484,11 +493,59 @@ var wocdb = (function (window, $) {
       return "";
     },
 
+    capitalise: function (text) {
+      if (text) {
+        return text[0].toUpperCase() + text.substring(1);
+      }
+      return "";
+    },
+
     getType: function (wocid) {
       if (wocid < 1000) {
         return "WOC";
       }
       return "JWOC";
+    },
+
+    getTypesDropdown: function () {
+      var dropdown;
+      dropdown = _.reduce(["WOC", "JWOC"], this.createTypeDropdownHTML, "");
+      return dropdown;
+    },
+
+    createTypeDropdownHTML: function (html, type) {
+      return html + "<li type='" + type + "'><a>" + type + "</a></li>";
+    },
+
+    getClassesDropdown: function () {
+      var dropdown;
+      dropdown = _.reduce(["Men", "Women", "Mixed"], this.createClassDropdownHTML, "");
+      return dropdown;
+    },
+
+    createClassDropdownHTML: function (html, gender) {
+      return html + "<li class='" + gender + "'><a>" + gender + "</a></li>";
+    },
+
+    getRacesDropdown: function () {
+      var dropdown;
+      dropdown = _.reduce(["Long", "Middle", "Sprint", "Relay", "SprintRelay"], this.createRaceDropdownHTML, "");
+      return dropdown;
+    },
+
+    createRaceDropdownHTML: function (html, race) {
+      return html + "<li race='" + race + "'><a>" + race + "</a></li>";
+    },
+
+
+    getCountriesDropdown: function (startHTML) {
+      var dropdown;
+      dropdown = _.reduce(wocdb.config.countries, this.createCountryDropdownHTML, startHTML);
+      return dropdown;
+    },
+
+    createCountryDropdownHTML: function (html, country) {
+      return html + "<li country='" + country + "'><a>" + country + "</a></li>";
     },
 
     abbrevList: ["ARG", "AUS", "AUT", "AZE", "BAR", "BEL", "BLR", "BRA", "BUL", "CAN", "CHI", "CHN", "COL", "CRO", "CYP", "CZE", "DEN",
@@ -786,7 +843,18 @@ var wocdb = (function (window, $) {
       "jwoc/:year/:gender/:race": "getJWOCResult",
       "person/:person": "getPerson",
       "runners/:type/:country": "getRunnersByCountry",
+      //"best/all": "initializeBestPage",
+      "best/:country/:type/:class/:race": "getBestResults",
       "*other": "showAllWocs"
+    },
+
+    initializeBestPage: function () {
+      wocdb.bestView.initializeBestPage();
+    },
+
+    getBestResults: function (country, type, gender, race) {
+      wocdb.bestlist.getBest({"country": country, "type": type, "gender": gender, "race": race});
+      wocdb.dispatcher.trigger("display:page", "best-page");
     },
 
     getPerson: function (person) {
@@ -856,7 +924,7 @@ var wocdb = (function (window, $) {
   wocdb.MasterView = Backbone.View.extend({
     el : '#wocdb-container',
 
-    pages: ['all-wocs-page', 'single-woc-page', 'person-page', 'country-page'],
+    pages: ['all-wocs-page', 'single-woc-page', 'person-page', 'country-page', 'best-page'],
 
     initialize : function () {
       wocdb.dispatcher.on('display:page', this.setPageVisibility, this);
@@ -942,13 +1010,8 @@ var wocdb = (function (window, $) {
       var dropdown;
       this.listenTo(this.collection, 'update', this.render);
       wocdb.dispatcher.on('startup:runners', this.render, this);
-      dropdown = "";
-      dropdown = _.reduce(wocdb.config.countries, this.createDropdownHTML, "");
+      dropdown = wocdb.utils.getCountriesDropdown("");
       this.$("#countries").empty().html(dropdown);
-    },
-
-    createDropdownHTML: function (html, country) {
-      return html + "<li country='" + country + "'><a>" + country + "</a></li>";
     },
 
     render : function () {
@@ -956,7 +1019,7 @@ var wocdb = (function (window, $) {
         this.countryTable.destroy();
       }
       this.$("#country-header-text").empty().html("Runners for " + this.collection.models[0].attributes.country);
-      this.$("#dropdown-country").empty().html(this.collection.models[0].attributes.country);
+      this.$("#dropdown-country").empty().html(this.collection.models[0].attributes.country + ' <span class="caret">');
       //text = 'Results by Country : The database tries to merge people who have run under several names into a single person. \
       //        Search by Name to see all known name variations (Yvette Hague and Yvette Baker as two separate entries),
       //        or by Person to see merged information (Yvette Hague as a single entry, including all other known name variations).
@@ -1021,11 +1084,229 @@ var wocdb = (function (window, $) {
       wocdb.dispatcher.trigger("change:person", personid);
     },
 
-    // click on row loads selected person
+    // click on row loads selected country
     selectCountry: function (evt) {
       var country;
       country = $(evt.currentTarget).attr('country').toLowerCase();
       this.collection.getRunnersByCountry("person", country);
+    }
+  });
+}());
+
+/*global wocdb:false */
+(function () {
+  'use strict';
+  wocdb.Best = Backbone.Model.extend({
+    initialize: function () {
+      this.attributes.flag = wocdb.utils.getFlagFile(this.attributes.country);
+      if (this.attributes.position < 4) {
+        this.attributes.position = '<img src="' + wocdb.config.url + 'img/' + this.attributes.position + '.svg">';
+      }
+      this.attributes.percentdown = parseFloat(this.attributes.percentdown).toFixed(1);
+      // needed to get round problem with reserved words in templates!
+      this.attributes.gender = this.attributes.class;
+    }
+  });
+}());
+/*global wocdb:false  */
+(function () {
+  'use strict';
+  wocdb.BestList = Backbone.Collection.extend({
+    // handles best results by country
+    initialize: function () {
+      wocdb.dispatcher.on("change:best", this.getBest, this);
+      // load results if they were provided in HTML at start-up
+      this.reset(wocdb.config.bootstrapBestList);
+    },
+
+    url: function () {
+      return wocdb.config.url + 'best/' + this.country + '/' + this.type + '/' + this.gender + '/' + this.race;
+    },
+
+    model: wocdb.Best,
+
+    getBest : function (details) {
+      this.country = details.country;
+      this.type = details.type;
+      this.gender = details.gender;
+      this.race = details.race;
+      wocdb.router.navigate('best/' + this.country + '/' + this.type + '/' + this.gender + '/' + this.race);
+      this.fetch();
+    }
+  });
+}());
+/*global wocdb:false */
+(function () {
+  'use strict';
+  /*jslint unparam: true */
+  wocdb.BestView = Backbone.View.extend({
+    el : '#best-page',
+
+    events: {
+      'click #best-table tbody tr': 'selectPerson',
+      'click #countries li': 'selectCountry',
+      'click #races li': 'selectRace',
+      'click #classes li': 'selectClass',
+      'click #types li': 'selectType',
+      'click #best-submit': 'getNewResults'
+    },
+
+    //headerTemplate: _.template($('#person-header-tmpl').html()),
+
+    initialize : function () {
+      var dropdown;
+      this.listenTo(this.collection, 'update', this.render);
+      wocdb.dispatcher.on('startup:best', this.render, this);
+      // add "ALL" as first entry in list
+      dropdown = wocdb.utils.getCountriesDropdown("<li country='ALL'><a>All countries</a></li>");
+      this.$("#countries").empty().html(dropdown);
+      dropdown = wocdb.utils.getRacesDropdown();
+      this.$("#races").empty().html(dropdown);
+      dropdown = wocdb.utils.getTypesDropdown();
+      this.$("#types").empty().html(dropdown);
+      dropdown = wocdb.utils.getClassesDropdown();
+      this.$("#classes").empty().html(dropdown);
+    },
+
+    initializeFromURL: function () {
+      var url, bits;
+      url = document.URL;
+      bits = url.split("/");
+      if (bits.length > 5) {
+        this.setCountry(bits[bits.length - 4]);
+        this.setType(bits[bits.length - 3]);
+        this.setClass(bits[bits.length - 2]);
+        this.setRace(bits[bits.length - 1]);
+      }
+    },
+
+    createDropdownHTML: function (html, country) {
+      return html + "<li country='" + country + "'><a>" + country + "</a></li>";
+    },
+
+    render : function () {
+      this.initializeFromURL();
+      if (this.bestTable) {
+        this.bestTable.destroy();
+      }
+      this.renderHeader();
+      this.bestTable = $('#best-table').empty().DataTable({
+        data : this.collection.models,
+        columns : [{
+          "data" : function (row) {
+            return row.get("name");
+          },
+          "title" : "Name"
+        }, {
+          "data" : function (row) {
+            return row.get("country");
+          },
+          "title" : "Country"
+        }, {
+          "data" : function (row) {
+            return "<img src='" + row.get("flag") + "'>";
+          },
+          "title" : ""
+        }, {
+          "data" : function (row) {
+            return row.get("position");
+          },
+          "title" : "Position"
+        }, {
+          "data" : function (row) {
+            return row.get("year");
+          },
+          "title" : "Year"
+        }, {
+          "data" : function (row) {
+            return row.get("venue");
+          },
+          "title" : "Venue"
+        }, {
+          "data" : function (row) {
+            return row.get("time");
+          },
+          "title" : "Time"
+        }, {
+          "data" : function (row) {
+            return row.get("percentdown");
+          },
+          "title" : "% down"
+        }],
+        "createdRow": function (row, data) {
+          // add personid to newly created row
+          $(row).attr('personid', data.attributes.personid);
+        },
+        "lengthMenu" : [[20, 50, 100, -1], [20, 50, 100, "All"]],
+        "order" : [1, 'asc'],
+        'autoWidth' : true,
+        'searching' : false,
+        "columnDefs" : [{
+          className : "dt-center",
+          "targets" : [1, 2, 3, 4, 6, 7]
+        }]
+      });
+    },
+
+    renderHeader: function () {
+      var text;
+      if (this.collection.models.length > 0) {
+        if (this.country === "ALL") {
+          text = "Best result by Country for " + this.type.toUpperCase() + " : " + wocdb.utils.capitalise(this.gender) + " : " + wocdb.utils.capitalise(this.race);
+        } else {
+          text = "Best results for " + this.type.toUpperCase() + " : " + wocdb.utils.capitalise(this.gender) + " : " + wocdb.utils.capitalise(this.race) + " : " + this.country.toUpperCase();
+        }
+        this.$("#best-header-text").empty().html(text);
+      }
+    },
+
+    // submit button
+    getNewResults: function () {
+      wocdb.dispatcher.trigger("change:best", {country: this.country, type: this.type, gender: this.gender, race: this.race});
+    },
+
+    // click on row in table loads selected person
+    selectPerson: function (evt) {
+      var personid;
+      wocdb.dispatcher.trigger("display:page", "person-page");
+      personid = parseInt($(evt.currentTarget).attr('personid'), 10);
+      wocdb.dispatcher.trigger("change:person", personid);
+    },
+
+    selectClass: function (evt) {
+      this.setClass($(evt.currentTarget).attr('class'));
+    },
+
+    setClass: function (gender) {
+      this.gender = gender.toLowerCase();
+      this.$("#dropdown-class").empty().html(wocdb.utils.capitalise(this.gender) + '<span class="caret">');
+    },
+
+    selectType: function (evt) {
+      this.setType($(evt.currentTarget).attr('type'));
+    },
+
+    setType: function (type) {
+      this.type = type.toLowerCase();
+      this.$("#dropdown-type").empty().html(this.type.toUpperCase() + '<span class="caret">');
+    },
+
+    selectRace: function (evt) {
+      this.setRace($(evt.currentTarget).attr('race'));
+    },
+
+    setRace: function (race) {
+      this.race = race.toLowerCase();
+      this.$("#dropdown-race").empty().html(wocdb.utils.capitalise(this.race) + '<span class="caret">');
+    },
+
+    selectCountry: function (evt) {
+      this.setCountry($(evt.currentTarget).attr('country'));
+    },
+
+    setCountry: function (country) {
+      this.country = country.toLowerCase();
+      this.$("#dropdown-country").empty().html(this.country.toUpperCase() + '<span class="caret">');
     }
   });
 }());

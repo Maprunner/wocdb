@@ -23,6 +23,7 @@ var wocdb = (function (window, $) {
     wocdb.raceResult = new wocdb.RaceResult();
     wocdb.person = new wocdb.Person();
     wocdb.runners = new wocdb.Runners();
+    wocdb.bestlist = new wocdb.BestList();
     wocdb.activeWOC = new wocdb.ActiveWOC();
     wocdb.masterView = new wocdb.MasterView();
     wocdb.activeWOCView = new wocdb.ActiveWOCView({
@@ -39,6 +40,9 @@ var wocdb = (function (window, $) {
     });
     wocdb.runnersView = new wocdb.RunnersView({
       collection : wocdb.runners
+    });
+    wocdb.bestView = new wocdb.BestView({
+      collection : wocdb.bestlist
     });
     wocdb.personView = new wocdb.PersonView({
       collection : wocdb.person
@@ -79,6 +83,11 @@ var wocdb = (function (window, $) {
         "type": "person",
         "country": country
       });
+      return;
+    }
+    if (wocdb.config.bootstrapBestList) {
+      wocdb.dispatcher.trigger("display:page", "best-page");
+      wocdb.dispatcher.trigger("startup:best");
       return;
     }
     wocdb.dispatcher.trigger("display:page", "all-wocs-page");

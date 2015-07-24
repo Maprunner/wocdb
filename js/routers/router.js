@@ -8,11 +8,17 @@
       "jwoc/:year/:gender/:race": "getJWOCResult",
       "person/:person": "getPerson",
       "runners/:type/:country": "getRunnersByCountry",
+      "best/:country/:type/:class/:race": "getBestResults",
       "*other": "showAllWocs"
     },
 
+    getBestResults: function (country, type, gender, race) {
+      wocdb.bestlist.getBest({"country": country, "type": type, "gender": gender, "race": race});
+      wocdb.dispatcher.trigger("display:page", "best-page");
+    },
+
     getPerson: function (person) {
-      this.getPerson(person);
+      wocdb.person.getPerson(person);
       wocdb.dispatcher.trigger("display:page", "person-page");
     },
 
