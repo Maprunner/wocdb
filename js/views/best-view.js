@@ -21,7 +21,7 @@
       this.listenTo(this.collection, 'update', this.render);
       wocdb.dispatcher.on('startup:best', this.render, this);
       // add "ALL" as first entry in list
-      dropdown = wocdb.utils.getCountriesDropdown("<li country='ALL'><a>All countries</a></li>");
+      dropdown = wocdb.countries.getCountriesDropdown("<li country='ALL'><a>All countries</a></li>");
       this.$("#countries").empty().html(dropdown);
       dropdown = wocdb.utils.getRacesDropdown();
       this.$("#races").empty().html(dropdown);
@@ -72,9 +72,20 @@
           "title" : ""
         }, {
           "data" : function (row) {
-            return row.get("position");
+            return row.get("numericPosition");
           },
-          "title" : "Position"
+          "title" : "Position",
+          "render": function (data, type) {
+            if (type === 'display') {
+              if (data < 4) {
+                return '<img src="' + wocdb.config.url + 'img/' + data + '.svg">';
+              }
+              if (data === 999) {
+                return "-";
+              }
+            }
+            return data;
+          }
         }, {
           "data" : function (row) {
             return row.get("year");
@@ -114,7 +125,7 @@
     renderHeader: function () {
       var text;
       if (this.collection.models.length > 0) {
-        if (this.country === "ALL") {
+        if (this.country === "all") {
           text = "Best result by Country for " + this.type.toUpperCase() + " : " + wocdb.utils.capitalise(this.gender) + " : " + wocdb.utils.capitalise(this.race);
         } else {
           text = "Best results for " + this.type.toUpperCase() + " : " + wocdb.utils.capitalise(this.gender) + " : " + wocdb.utils.capitalise(this.race) + " : " + this.country.toUpperCase();

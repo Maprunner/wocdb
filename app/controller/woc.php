@@ -48,10 +48,9 @@ private static function getWOCs($f3) {
 
 private static function getCountries($f3) {
   $db = $f3->get("db.instance");
-  $resultTable = new DB\SQL\Mapper($db,'result');
-  $data=$db->exec('SELECT DISTINCT country FROM result ORDER BY country ASC');
-  // return each country in a single array
-  return json_encode(array_column($data, "country"));
+  $resultTable = new DB\SQL\Mapper($db,'country');
+  $data=$db->exec('SELECT * FROM country ORDER BY country ASC');
+  return json_encode($data);
 }
 
 }

@@ -37,7 +37,7 @@
           "title" : "Event"
         }, {
           "data" : function (row) {
-            return wocdb.utils.getVenue(row.get("wocid"));
+            return row.get("venue");
           },
           "title" : "Venue"
         }, {
@@ -52,12 +52,20 @@
           "title" : "Race"
         }, {
           "data" : function (row) {
-            if (row.get("position") === 999) {
-              return "-";
-            }
-            return row.get("position");
+            return row.get("numericPosition");
           },
-          "title" : "Place"
+          "title" : "Place",
+          "render": function (data, type, full) {
+            if (type === 'display') {
+              if ((data < 4) && (full.attributes.final > 0)) {
+                return '<img src="' + wocdb.config.url + 'img/' + data + '.svg">';
+              }
+              if (data === 999) {
+                return "-";
+              }
+            }
+            return data;
+          }
         }, {
           "data" : function (row) {
             return row.get("name");

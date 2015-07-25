@@ -19,6 +19,7 @@
 <script src="js/models/result.js"></script>
 <script src="js/models/best.js"></script>
 <script src="js/collections/wocs.js"></script>
+<script src="js/collections/countries.js"></script>
 <script src="js/collections/runners.js"></script>
 <script src="js/collections/races.js"></script>
 <script src="js/collections/person.js"></script>
@@ -53,7 +54,7 @@ wocdb.config = {
   <true>bootstrapRunners: {{ @runnerdata | raw }},</true>
 </check>
   bootstrapWocs: {{ @wocs | raw }},
-  countries: {{ @countries | raw }}
+  countrydata: {{ @countries | raw }}
 }
 }());
 $(document).ready(wocdb.init);

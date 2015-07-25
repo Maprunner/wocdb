@@ -30,11 +30,11 @@ private function getBest($f3, $action) {
   $type = $f3->get('PARAMS.type');
   if ($type == "woc") {
     $typefilter = "wocid<1000";
-    $typefilterw = "w.id<1000";
+    $typefilterw = "w.wocid<1000";
     $typefilterz = "z.wocid<1000";
   } else {
     $typefilter = "wocid>999";
-    $typefilterw = "w.id>999";
+    $typefilterw = "w.wocid>999";
     $typefilterz = "z.wocid>999";
   }
   $class = ucfirst($f3->get('PARAMS.class'));
@@ -75,19 +75,6 @@ private function getBest($f3, $action) {
       ':class2'=>$class,
       ':racefilter2'=>$racefilter
     );
-    $sql = "SELECT personid, z.year AS year, time, percentdown, z.country AS country, name, position, a.country AS venue FROM ";
-    $sql .= "(SELECT r.personid, r.year, r.time, r.percentdown, r.class, r.final, r.wocid, r.country, r.name, r.position FROM result r JOIN "; 
-    $sql .= "(SELECT w.country, MIN(w.position) AS minposition FROM result w WHERE w.class=:class";
-    $sql .= " AND w.final=:racefilter AND ". $typefilterw . " GROUP BY w.country) AS x ON r.position=minposition AND ";
-    $sql .= "r.country=x.country) AS z, woc a WHERE z.wocid=a.id AND z.class=:class2 AND z.final=:racefilter2 AND " . $typefilterz;
-    $sql .= " ORDER BY z.country ASC, z.year ASC";
-    $params = array(
-      ':class'=>$class,
-      ':racefilter'=>$racefilter,
-      ':class2'=>$class,
-      ':racefilter2'=>$racefilter
-    );
-
   } else {
     // returns a list of best results for given country
     $sql = "SELECT personid, percentdown, r.Year as year, r.position as position, name, r.country as country, w.country as venue, time FROM result AS r, woc AS w WHERE (w.id=r.wocid) AND ";

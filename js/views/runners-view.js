@@ -16,7 +16,7 @@
       var dropdown;
       this.listenTo(this.collection, 'update', this.render);
       wocdb.dispatcher.on('startup:runners', this.render, this);
-      dropdown = wocdb.utils.getCountriesDropdown("");
+      dropdown = wocdb.countries.getCountriesDropdown("");
       this.$("#countries").empty().html(dropdown);
     },
 

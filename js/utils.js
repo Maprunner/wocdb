@@ -6,7 +6,7 @@
 
     getVenue: function (wocid) {
       var model;
-      model = wocdb.wocs.findWhere({"id": wocid});
+      model = wocdb.wocs.findWhere({"id": parseInt(wocid, 10)});
       if (model) {
         return model.attributes.country;
       }
@@ -55,17 +55,6 @@
 
     createRaceDropdownHTML: function (html, race) {
       return html + "<li race='" + race + "'><a>" + race + "</a></li>";
-    },
-
-
-    getCountriesDropdown: function (startHTML) {
-      var dropdown;
-      dropdown = _.reduce(wocdb.config.countries, this.createCountryDropdownHTML, startHTML);
-      return dropdown;
-    },
-
-    createCountryDropdownHTML: function (html, country) {
-      return html + "<li country='" + country + "'><a>" + country + "</a></li>";
     },
 
     abbrevList: ["ARG", "AUS", "AUT", "AZE", "BAR", "BEL", "BLR", "BRA", "BUL", "CAN", "CHI", "CHN", "COL", "CRO", "CYP", "CZE", "DEN",

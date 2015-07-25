@@ -15,6 +15,7 @@ var wocdb = (function (window, $) {
 
     wocdb.router = new wocdb.WocdbRouter();
     wocdb.utils.hijackLinks();
+    wocdb.countries = new wocdb.Countries(wocdb.config.countrydata);
 
     // create objects
     wocdb.dispatcher = _.clone(Backbone.Events);

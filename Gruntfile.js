@@ -2,7 +2,8 @@ module.exports = function(grunt) {
   var jsFileList = ['js/wocdb.js', 'js/models/activewoc.js', 'js/models/woc.js', 'js/models/race.js', 'js/models/result.js', 'js/collections/wocs.js', 'js/collections/races.js',
                     'js/collections/raceresult.js', 'js/views/active-woc-view.js', 'js/views/wocdb-view.js', 'js/views/result-view.js','js/utils.js','js/views/person-view.js',
                     'js/views/race-result-view.js', 'js/views/race-header-view.js', 'js/views/race-menu-view.js', 'js/routers/router.js', 'js/collections/person.js', 'js/views/master-view.js',
-                    'js/models/runner.js', 'js/collections/runners.js', 'js/views/runners-view.js', 'js/models/best.js', 'js/collections/bestlist.js', 'js/views/best-view.js'];
+                    'js/models/runner.js', 'js/collections/runners.js', 'js/views/runners-view.js', 'js/models/best.js', 'js/collections/bestlist.js', 'js/views/best-view.js',
+                    'js/collections/countries.js',];
 
   var cssFileList = ['css/wocdb.css'];
   

@@ -1,4 +1,4 @@
-// Version 0.1.0 2015-07-24T20:16:32;
+// Version 0.1.0 2015-07-25T11:10:03;
 /*
  * Maprunner  WOC Database
  * https://github.com/Maprunner/wocdb
@@ -16,6 +16,7 @@ var wocdb = (function (window, $) {
 
     wocdb.router = new wocdb.WocdbRouter();
     wocdb.utils.hijackLinks();
+    wocdb.countries = new wocdb.Countries(wocdb.config.countrydata);
 
     // create objects
     wocdb.dispatcher = _.clone(Backbone.Events);
@@ -146,6 +147,9 @@ var wocdb = (function (window, $) {
 
     initialize : function () {
       this.attributes.flag = wocdb.utils.getFlagFile(this.attributes.country);
+      this.attributes.venue = wocdb.utils.getVenue(this.attributes.wocid);
+      // keep numeric copy of position to allow sorting
+      this.attributes.numericPosition = this.attributes.position;
       if (this.attributes.final > 0) {
         if (this.attributes.position < 4) {
           this.attributes.position = '<img src="' + wocdb.config.url + 'img/' + this.attributes.position + '.svg">';
@@ -486,7 +490,7 @@ var wocdb = (function (window, $) {
 
     getVenue: function (wocid) {
       var model;
-      model = wocdb.wocs.findWhere({"id": wocid});
+      model = wocdb.wocs.findWhere({"id": parseInt(wocid, 10)});
       if (model) {
         return model.attributes.country;
       }
@@ -535,17 +539,6 @@ var wocdb = (function (window, $) {
 
     createRaceDropdownHTML: function (html, race) {
       return html + "<li race='" + race + "'><a>" + race + "</a></li>";
-    },
-
-
-    getCountriesDropdown: function (startHTML) {
-      var dropdown;
-      dropdown = _.reduce(wocdb.config.countries, this.createCountryDropdownHTML, startHTML);
-      return dropdown;
-    },
-
-    createCountryDropdownHTML: function (html, country) {
-      return html + "<li country='" + country + "'><a>" + country + "</a></li>";
     },
 
     abbrevList: ["ARG", "AUS", "AUT", "AZE", "BAR", "BEL", "BLR", "BRA", "BUL", "CAN", "CHI", "CHN", "COL", "CRO", "CYP", "CZE", "DEN",
@@ -636,7 +629,7 @@ var wocdb = (function (window, $) {
           "title" : "Event"
         }, {
           "data" : function (row) {
-            return wocdb.utils.getVenue(row.get("wocid"));
+            return row.get("venue");
           },
           "title" : "Venue"
         }, {
@@ -651,12 +644,20 @@ var wocdb = (function (window, $) {
           "title" : "Race"
         }, {
           "data" : function (row) {
-            if (row.get("position") === 999) {
-              return "-";
-            }
-            return row.get("position");
+            return row.get("numericPosition");
           },
-          "title" : "Place"
+          "title" : "Place",
+          "render": function (data, type, full) {
+            if (type === 'display') {
+              if ((data < 4) && (full.attributes.final > 0)) {
+                return '<img src="' + wocdb.config.url + 'img/' + data + '.svg">';
+              }
+              if (data === 999) {
+                return "-";
+              }
+            }
+            return data;
+          }
         }, {
           "data" : function (row) {
             return row.get("name");
@@ -843,13 +844,8 @@ var wocdb = (function (window, $) {
       "jwoc/:year/:gender/:race": "getJWOCResult",
       "person/:person": "getPerson",
       "runners/:type/:country": "getRunnersByCountry",
-      //"best/all": "initializeBestPage",
       "best/:country/:type/:class/:race": "getBestResults",
       "*other": "showAllWocs"
-    },
-
-    initializeBestPage: function () {
-      wocdb.bestView.initializeBestPage();
     },
 
     getBestResults: function (country, type, gender, race) {
@@ -858,7 +854,7 @@ var wocdb = (function (window, $) {
     },
 
     getPerson: function (person) {
-      this.getPerson(person);
+      wocdb.person.getPerson(person);
       wocdb.dispatcher.trigger("display:page", "person-page");
     },
 
@@ -911,7 +907,6 @@ var wocdb = (function (window, $) {
     model: wocdb.Result,
 
     getPerson : function (person) {
-      this.reset();
       this.personid = person;
       wocdb.router.navigate('person/' + this.personid);
       this.fetch();
@@ -1010,7 +1005,7 @@ var wocdb = (function (window, $) {
       var dropdown;
       this.listenTo(this.collection, 'update', this.render);
       wocdb.dispatcher.on('startup:runners', this.render, this);
-      dropdown = wocdb.utils.getCountriesDropdown("");
+      dropdown = wocdb.countries.getCountriesDropdown("");
       this.$("#countries").empty().html(dropdown);
     },
 
@@ -1099,6 +1094,10 @@ var wocdb = (function (window, $) {
   wocdb.Best = Backbone.Model.extend({
     initialize: function () {
       this.attributes.flag = wocdb.utils.getFlagFile(this.attributes.country);
+      this.attributes.venue = wocdb.utils.getVenue(this.attributes.wocid);
+      // keep numeric copy of position to allow sorting
+      this.attributes.numericPosition = this.attributes.position;
+      // best only used for finals so don't need to check for qualifiers'
       if (this.attributes.position < 4) {
         this.attributes.position = '<img src="' + wocdb.config.url + 'img/' + this.attributes.position + '.svg">';
       }
@@ -1158,7 +1157,7 @@ var wocdb = (function (window, $) {
       this.listenTo(this.collection, 'update', this.render);
       wocdb.dispatcher.on('startup:best', this.render, this);
       // add "ALL" as first entry in list
-      dropdown = wocdb.utils.getCountriesDropdown("<li country='ALL'><a>All countries</a></li>");
+      dropdown = wocdb.countries.getCountriesDropdown("<li country='ALL'><a>All countries</a></li>");
       this.$("#countries").empty().html(dropdown);
       dropdown = wocdb.utils.getRacesDropdown();
       this.$("#races").empty().html(dropdown);
@@ -1209,9 +1208,20 @@ var wocdb = (function (window, $) {
           "title" : ""
         }, {
           "data" : function (row) {
-            return row.get("position");
+            return row.get("numericPosition");
           },
-          "title" : "Position"
+          "title" : "Position",
+          "render": function (data, type) {
+            if (type === 'display') {
+              if (data < 4) {
+                return '<img src="' + wocdb.config.url + 'img/' + data + '.svg">';
+              }
+              if (data === 999) {
+                return "-";
+              }
+            }
+            return data;
+          }
         }, {
           "data" : function (row) {
             return row.get("year");
@@ -1251,7 +1261,7 @@ var wocdb = (function (window, $) {
     renderHeader: function () {
       var text;
       if (this.collection.models.length > 0) {
-        if (this.country === "ALL") {
+        if (this.country === "all") {
           text = "Best result by Country for " + this.type.toUpperCase() + " : " + wocdb.utils.capitalise(this.gender) + " : " + wocdb.utils.capitalise(this.race);
         } else {
           text = "Best results for " + this.type.toUpperCase() + " : " + wocdb.utils.capitalise(this.gender) + " : " + wocdb.utils.capitalise(this.race) + " : " + this.country.toUpperCase();
@@ -1309,4 +1319,28 @@ var wocdb = (function (window, $) {
       this.$("#dropdown-country").empty().html(this.country.toUpperCase() + '<span class="caret">');
     }
   });
+}());
+
+/*global wocdb:false  */
+(function () {
+  'use strict';
+
+  wocdb.Country = Backbone.Model.extend({
+  });
+
+  wocdb.Countries = Backbone.Collection.extend({
+    model: wocdb.Country,
+
+    getCountriesDropdown: function (startHTML) {
+      var dropdown;
+      dropdown = _.reduce(this.models, this.createCountryDropdownHTML, startHTML);
+      return dropdown;
+    },
+
+    createCountryDropdownHTML: function (html, model) {
+      return html + "<li country='" + model.attributes.abbr + "'><a>" + model.attributes.abbr + "</a></li>";
+    }
+
+  });
+
 }());
