@@ -5,21 +5,25 @@
 <true>
 <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.2.1/backbone-min.js"></script>
+<script src="js/typeahead.bundle.min.js">"</script>
 <script src="js/wocdb.min.js?{{ @minFileModTime }}"></script>
 </true>
 <false>
 <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.2.1/backbone.js"></script>
+<script src="js/typeahead.bundle.min.js">"</script>
 <script src="js/wocdb.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/models/activewoc.js"></script>
 <script src="js/models/woc.js"></script>
+<script src="js/models/medal.js"></script>
 <script src="js/models/race.js"></script>
 <script src="js/models/runner.js"></script>
 <script src="js/models/result.js"></script>
 <script src="js/models/best.js"></script>
 <script src="js/collections/wocs.js"></script>
 <script src="js/collections/countries.js"></script>
+<script src="js/collections/medals.js"></script>
 <script src="js/collections/runners.js"></script>
 <script src="js/collections/races.js"></script>
 <script src="js/collections/person.js"></script>
@@ -35,6 +39,7 @@
 <script src="js/views/race-header-view.js"></script>
 <script src="js/views/race-menu-view.js"></script>
 <script src="js/views/best-view.js"></script>
+<script src="js/views/medals-view.js"></script>
 <script src="js/routers/router.js"></script>
 </false>
 </check>
@@ -49,6 +54,9 @@ wocdb.config = {
 </check>
 <check if="{{ isset(@bestdata) }}">
   <true>bootstrapBestList: {{ @bestdata | raw }},</true>
+</check>
+<check if="{{ isset(@medaldata) }}">
+  <true>bootstrapMedals: {{ @medaldata | raw }},</true>
 </check>
 <check if="{{ isset(@runnerdata) }}">
   <true>bootstrapRunners: {{ @runnerdata | raw }},</true>

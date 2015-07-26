@@ -17,11 +17,14 @@ private function getResults($f3, $action) {
   $db = $f3->get("db.instance");
   $person = $f3->get('PARAMS.person');
   $resultTable = new DB\SQL\Mapper($db,'result');
-  if (is_numeric($person)) {
-    $condition = array("personid=?", $person);
+  $nameTable = new DB\SQL\Mapper($db,'name');
+  $data = $nameTable->find(array("plainname=?", $person));
+  if (count($data) > 0) {
+    $personid = $data[0]->personid;
   } else {
-    $condition = array("plainname=?", $person);
+    $personid = 0;
   }
+  $condition = array("personid=?", $personid);
   $data = $resultTable->find($condition, array('order'=>'year DESC, final ASC'));
   foreach ($data as &$record) {
     $record = $record->cast();

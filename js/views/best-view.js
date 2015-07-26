@@ -21,13 +21,13 @@
       this.listenTo(this.collection, 'update', this.render);
       wocdb.dispatcher.on('startup:best', this.render, this);
       // add "ALL" as first entry in list
-      dropdown = wocdb.countries.getCountriesDropdown("<li country='ALL'><a>All countries</a></li>");
+      dropdown = wocdb.countries.getCountriesDropdown("<li country='all'><a>All countries</a></li>");
       this.$("#countries").empty().html(dropdown);
-      dropdown = wocdb.utils.getRacesDropdown();
+      dropdown = wocdb.utils.getRacesDropdown("");
       this.$("#races").empty().html(dropdown);
-      dropdown = wocdb.utils.getTypesDropdown();
+      dropdown = wocdb.utils.getTypesDropdown("");
       this.$("#types").empty().html(dropdown);
-      dropdown = wocdb.utils.getClassesDropdown();
+      dropdown = wocdb.utils.getClassesDropdown("");
       this.$("#classes").empty().html(dropdown);
     },
 
@@ -41,10 +41,6 @@
         this.setClass(bits[bits.length - 2]);
         this.setRace(bits[bits.length - 1]);
       }
-    },
-
-    createDropdownHTML: function (html, country) {
-      return html + "<li country='" + country + "'><a>" + country + "</a></li>";
     },
 
     render : function () {
@@ -109,7 +105,7 @@
         }],
         "createdRow": function (row, data) {
           // add personid to newly created row
-          $(row).attr('personid', data.attributes.personid);
+          $(row).attr('plainname', data.attributes.plainname);
         },
         "lengthMenu" : [[20, 50, 100, -1], [20, 50, 100, "All"]],
         "order" : [1, 'asc'],
@@ -124,14 +120,12 @@
 
     renderHeader: function () {
       var text;
-      if (this.collection.models.length > 0) {
-        if (this.country === "all") {
-          text = "Best result by Country for " + this.type.toUpperCase() + " : " + wocdb.utils.capitalise(this.gender) + " : " + wocdb.utils.capitalise(this.race);
-        } else {
-          text = "Best results for " + this.type.toUpperCase() + " : " + wocdb.utils.capitalise(this.gender) + " : " + wocdb.utils.capitalise(this.race) + " : " + this.country.toUpperCase();
-        }
-        this.$("#best-header-text").empty().html(text);
+      if (this.country === "all") {
+        text = "Best result by Country for " + this.type.toUpperCase() + " : " + wocdb.utils.capitalise(this.gender) + " : " + wocdb.utils.capitalise(this.race);
+      } else {
+        text = "Best results for " + this.type.toUpperCase() + " : " + wocdb.utils.capitalise(this.gender) + " : " + wocdb.utils.capitalise(this.race) + " : " + wocdb.countries.getName(this.country);
       }
+      this.$("#best-header-text").empty().html(text);
     },
 
     // submit button
@@ -141,10 +135,10 @@
 
     // click on row in table loads selected person
     selectPerson: function (evt) {
-      var personid;
+      var name;
       wocdb.dispatcher.trigger("display:page", "person-page");
-      personid = parseInt($(evt.currentTarget).attr('personid'), 10);
-      wocdb.dispatcher.trigger("change:person", personid);
+      name = $(evt.currentTarget).attr('plainname');
+      wocdb.dispatcher.trigger("change:person", name);
     },
 
     selectClass: function (evt) {

@@ -4,7 +4,7 @@
   wocdb.MasterView = Backbone.View.extend({
     el : '#wocdb-container',
 
-    pages: ['all-wocs-page', 'single-woc-page', 'person-page', 'country-page', 'best-page'],
+    pages: ['all-wocs-page', 'single-woc-page', 'person-page', 'country-page', 'best-page', 'medal-page'],
 
     initialize : function () {
       wocdb.dispatcher.on('display:page', this.setPageVisibility, this);

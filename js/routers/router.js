@@ -8,13 +8,25 @@
       "jwoc/:year/:gender/:race": "getJWOCResult",
       "person/:person": "getPerson",
       "runners/:type/:country": "getRunnersByCountry",
+      "medals/:group/:type/:class/:race": "getMedals",
       "best/:country/:type/:class/:race": "getBestResults",
+      "person": "nameSearch",
       "*other": "showAllWocs"
+    },
+
+    nameSearch: function () {
+      wocdb.person.searchName();
+      wocdb.dispatcher.trigger("display:page", "person-page");
     },
 
     getBestResults: function (country, type, gender, race) {
       wocdb.bestlist.getBest({"country": country, "type": type, "gender": gender, "race": race});
       wocdb.dispatcher.trigger("display:page", "best-page");
+    },
+
+    getMedals: function (group, type, gender, race) {
+      wocdb.medals.getMedals({"group": group, "type": type, "gender": gender, "race": race});
+      wocdb.dispatcher.trigger("display:page", "medal-page");
     },
 
     getPerson: function (person) {

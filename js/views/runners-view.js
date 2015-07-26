@@ -68,8 +68,8 @@
           "title" : "JWOCs"
         }],
         "createdRow": function (row, data) {
-          // add personid to newly created row
-          $(row).attr('personid', data.attributes.personid);
+          // add plainname to newly created row
+          $(row).attr('plainname', data.attributes.plainname);
         },
         "lengthMenu" : [[20, 50, 100, -1], [20, 50, 100, "All"]],
         "order" : [0, 'asc'],
@@ -84,10 +84,10 @@
 
     // click on row loads selected person
     selectPerson: function (evt) {
-      var personid;
+      var plainname;
       wocdb.dispatcher.trigger("display:page", "person-page");
-      personid = parseInt($(evt.currentTarget).attr('personid'), 10);
-      wocdb.dispatcher.trigger("change:person", personid);
+      plainname = $(evt.currentTarget).attr('plainname');
+      wocdb.dispatcher.trigger("change:person", plainname);
     },
 
     // click on row loads selected country

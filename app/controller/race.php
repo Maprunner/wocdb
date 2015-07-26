@@ -39,7 +39,7 @@ private function getRace($f3, $type, $action) {
   $db = $f3->get("db.instance");
   // need to be able to specify lower(x) to match url parameters to column names so use exec rather than a built-in function
   $params = array(':year'=>$year, ':race'=>$race, ':class'=>$class, ':max'=>$max, ':min'=>$min);
-  $data=$db->exec('SELECT * FROM result WHERE year=:year AND lower(race)=:race AND lower(class)=:class AND wocid>:min AND wocid<:max ORDER BY position ASC, country ASC', $params);
+  $data=$db->exec('SELECT * FROM result JOIN name ON result.nameid=name.nameid WHERE year=:year AND lower(race)=:race AND lower(class)=:class AND wocid>:min AND wocid<:max ORDER BY position ASC, country ASC', $params);
   // result returned for inclusion in HTML at start-up
   if ($action == 'return') {
     return json_encode($data);

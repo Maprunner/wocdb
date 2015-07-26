@@ -24,7 +24,6 @@
     model: wocdb.Runner,
 
     getRunnersByCountry : function (type, country) {
-      this.reset();
       this.country = country;
       this.type = type;
       wocdb.router.navigate('runners/' + this.type + '/' + this.country);

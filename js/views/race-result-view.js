@@ -35,10 +35,10 @@
 
     // click on row loads selected person
     selectPerson: function (evt) {
-      var index;
+      var name;
       wocdb.dispatcher.trigger("display:page", "person-page");
-      index = parseInt(evt.currentTarget.id, 10);
-      wocdb.dispatcher.trigger('change:person', index);
+      name = $(evt.currentTarget).attr('plainname');
+      wocdb.dispatcher.trigger('change:person', name);
     }
   });
 }());

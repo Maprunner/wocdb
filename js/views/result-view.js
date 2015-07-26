@@ -9,7 +9,7 @@
     template: _.template($('#race-result-tmpl').html()),
 
     render: function () {
-      this.$el.html(this.template(this.model.attributes)).attr('id', this.model.attributes.personid);
+      this.$el.html(this.template(this.model.attributes)).attr('plainname', this.model.attributes.plainname);
       return this;
     }
   });

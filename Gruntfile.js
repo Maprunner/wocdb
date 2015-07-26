@@ -3,7 +3,7 @@ module.exports = function(grunt) {
                     'js/collections/raceresult.js', 'js/views/active-woc-view.js', 'js/views/wocdb-view.js', 'js/views/result-view.js','js/utils.js','js/views/person-view.js',
                     'js/views/race-result-view.js', 'js/views/race-header-view.js', 'js/views/race-menu-view.js', 'js/routers/router.js', 'js/collections/person.js', 'js/views/master-view.js',
                     'js/models/runner.js', 'js/collections/runners.js', 'js/views/runners-view.js', 'js/models/best.js', 'js/collections/bestlist.js', 'js/views/best-view.js',
-                    'js/collections/countries.js',];
+                    'js/collections/countries.js', 'js/models/medal.js', 'js/collections/medals.js', 'js/views/medals-view.js'];
 
   var cssFileList = ['css/wocdb.css'];
   

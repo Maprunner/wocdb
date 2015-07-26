@@ -24,6 +24,17 @@ public function getStartPageWithBestResults($f3) {
   Woc::getStartPage($f3);
 }
 
+public function getMedals($f3) {
+  $medaldata = $this->getMedalData($f3, 'echo');
+}
+
+public function getStartPageWithMedals($f3) {
+  $medaldata = $this->getMedalData($f3, 'return');
+  $f3->set('medaldata', $medaldata);
+  // serve full page
+  Woc::getStartPage($f3);
+}
+
 private function getBest($f3, $action) {
   $db = $f3->get("db.instance");
   $country = strtoupper($f3->get('PARAMS.country'));
@@ -69,6 +80,13 @@ private function getBest($f3, $action) {
     $sql .= " AND w.final=:racefilter AND ". $typefilterw . " GROUP BY w.country) AS x ON r.position=minposition AND ";
     $sql .= "r.country=x.country) AS z, woc a WHERE z.wocid=a.id AND z.class=:class2 AND z.final=:racefilter2 AND " . $typefilterz;
     $sql .= " ORDER BY z.country ASC, z.year ASC";
+    
+    $sql = "SELECT z.personid as personid, z.year AS year, time, percentdown, z.country AS country, z.name as name, n.plainname as plainname, position, a.country AS venue FROM ";
+    $sql .= "((SELECT r.personid as personid, r.nameid as nameid, r.year, r.time, r.percentdown, r.class, r.final, r.wocid, r.country, r.name, r.position FROM result r JOIN "; 
+    $sql .= "(SELECT w.country, MIN(w.position) AS minposition FROM result w WHERE w.class=:class";
+    $sql .= " AND w.final=:racefilter AND ". $typefilterw . " GROUP BY w.country) AS x ON r.position=minposition AND ";
+    $sql .= "r.country=x.country) AS z) JOIN name AS n ON z.nameid=n.nameid, woc a WHERE z.wocid=a.id AND z.class=:class2 AND z.final=:racefilter2 AND " . $typefilterz;
+    $sql .= " ORDER BY z.country ASC, z.year ASC";
     $params = array(
       ':class'=>$class,
       ':racefilter'=>$racefilter,
@@ -77,7 +95,8 @@ private function getBest($f3, $action) {
     );
   } else {
     // returns a list of best results for given country
-    $sql = "SELECT personid, percentdown, r.Year as year, r.position as position, name, r.country as country, w.country as venue, time FROM result AS r, woc AS w WHERE (w.id=r.wocid) AND ";
+    $sql = "SELECT n.personid as personid, n.plainname as plainname, percentdown, r.year as year, r.position as position, r.name as name, r.country as country, w.country as venue, time ";
+    $sql .= "FROM result AS r JOIN name AS n ON r.nameid=n.nameid, woc AS w WHERE (w.id=r.wocid) AND ";
     $sql .= $typefilter ." AND (final=:race) AND (class=:class) AND (r.country=:country)";
     $sql .= " ORDER BY position ASC, year DESC, name ASC";
     
@@ -99,6 +118,111 @@ private function getBest($f3, $action) {
   echo json_encode($data);
 }
 
+private function getMedalData($f3, $action) {
+  $db = $f3->get("db.instance");
+  $group = $f3->get('PARAMS.group');
+  $type = $f3->get('PARAMS.type');
+  if ($type == "woc") {
+    $typefilter = " wocid<1000 ";
+  } else if ($type == "jwoc") {
+    $typefilter = " wocid>999 ";
+  } else {
+    $typefilter = " wocid>0 ";
+  }
+  $class = ucfirst($f3->get('PARAMS.class'));
+  switch ($class) {
+    case 'All':
+        $classfilter= "";
+        break;
+    case 'Men':
+        $classfilter= " AND class='Men'";
+        break;
+    case 'Women':
+        $classfilter= " AND class='Women'";
+        break;
+    default:
+        $classfilter= " AND class='Mixed'";
+        break;
+  }
+
+  $race = $f3->get('PARAMS.race');
+  switch ($race) {
+    case 'long':
+        $racefilter= " AND final=1 ";
+        break;
+    case 'middle':
+        $racefilter= " AND final=2 ";
+        break;
+    case 'sprint':
+        $racefilter= " AND final=3 ";
+        break;
+    case 'relay':
+        $racefilter= " AND final=4 ";
+        break;
+    case 'sprintrelay':
+        $racefilter= " AND final=5 ";
+        break;
+    default:
+        $racefilter= " AND final>0 ";
+        break;
+  }
+  
+  //echo $group." ".$typefilter. " " .$racefilter. " ". $classfilter;
+  if ($group == "country") {
+  // wow this is fun:  need to avoid multiple counting relays so you select one of each relay result UNION all individual results
+  // and use that to extract results
+    $sql = "SELECT country,SUM(CASE WHEN position=1 THEN 1 ELSE 0 END) AS G,";
+    $sql .= "SUM(CASE WHEN position=2 THEN 1 ELSE 0 END) AS S, SUM(CASE WHEN position=3 THEN 1 ELSE 0 END) AS B,";
+    $sql .= "SUM(CASE WHEN (position=1) OR (position=2) OR (position = 3) THEN 1 ELSE 0 END) AS total FROM result as w ";
+    $sql .= "JOIN (SELECT id FROM result AS a WHERE position=1 AND (final=4 OR final=5) GROUP BY raceid ";
+    $sql .= "UNION (SELECT id FROM result AS b WHERE position=2 AND (final=4 OR final=5) GROUP BY raceid) UNION ";
+    $sql .= "(SELECT id FROM result AS c WHERE position=3 AND (final=4 OR final=5) GROUP BY raceid) UNION ";
+    $sql .= "(SELECT id FROM result AS d WHERE (position<4) AND (final<4 AND final>0))) AS x ON (w.id = x.id) WHERE ";
+    $sql .= $typefilter.$racefilter.$classfilter;
+    $sql .= " AND (position<4) GROUP BY country";
+
+    $sql = "SELECT country,SUM(CASE WHEN position=1 THEN 1 ELSE 0 END) AS G,";
+    $sql .= "SUM(CASE WHEN position=2 THEN 1 ELSE 0 END) AS S, SUM(CASE WHEN position=3 THEN 1 ELSE 0 END) AS B,";
+    $sql .= "SUM(CASE WHEN (position=1) OR (position=2) OR (position = 3) THEN 1 ELSE 0 END) AS total FROM result as w ";
+    $sql .= "JOIN (SELECT id FROM result AS a WHERE position=1 AND (final=4 OR final=5) GROUP BY raceid ";
+    $sql .= "UNION SELECT id FROM result AS b WHERE position=2 AND (final=4 OR final=5) GROUP BY raceid UNION ";
+    $sql .= "SELECT id FROM result AS c WHERE position=3 AND (final=4 OR final=5) GROUP BY raceid UNION ";
+    $sql .= "SELECT id FROM result AS d WHERE (position<4) AND (final<4 AND final>0)) AS x ON (w.id = x.id) WHERE ";
+    $sql .= $typefilter.$racefilter.$classfilter;
+    $sql .= " AND (position<4) GROUP BY country";
+
+
+    $params = array(
+    );
+  } else {
+    // returns a list of all individual medal totals
+    $sql = "SELECT r.personid as personid, r.name as name, name.plainname as plainname, country, SUM(CASE WHEN position = 1 THEN 1 ELSE 0 END) AS G,";
+    $sql .= "SUM(CASE WHEN position = 2 THEN 1 ELSE 0 END) AS S, SUM(CASE WHEN position = 3 THEN 1 ELSE 0 END) AS B, ";
+    $sql .= "SUM(CASE WHEN position<4 THEN 1 ELSE 0 END) AS total FROM result as r JOIN name ON name.nameid=r.nameid WHERE ";
+    $sql .= $typefilter.$racefilter.$classfilter;
+    $sql .= " AND (position < 4) GROUP BY r.personid";
+       
+    $params = array(
+    );
+  }
+  //echo $sql;
+  //print_r($params);
+    $data = $db->exec($sql, $params);
+
+  // result returned for inclusion in HTML at start-up
+  if ($action == 'return') {
+    return json_encode($data);
+  }
+  // fall through to JSON output
+  echo json_encode($data);
+}
+
+    // returns a list of all individual medals
+    // $sql = 'SELECT r.personid, r.year, r.class, r.position, r.name, r.country, w.country as venue ';
+    // $sql .= 'FROM woc AS w, result AS r WHERE r.wocid=w.id AND r.position<4 AND r.final >0 ';
+    // $sql .= 'ORDER BY r.year ASC, r.final ASC, r.raceid ASC, r.position ASC';
+
+
 private function getRunners($f3, $action) {
   $db = $f3->get("db.instance");
   $country = $f3->get('PARAMS.country');
@@ -109,8 +233,9 @@ private function getRunners($f3, $action) {
   } else {
     $group = "personid";
   }
-  $sql= 'SELECT nameid, name, personid, country, SUM(CASE WHEN wocid<1000 THEN 1 ELSE 0 END) AS woc, SUM(CASE WHEN wocid>999 THEN 1 ELSE 0 END) AS jwoc FROM ';
-  $sql .=  '(SELECT DISTINCT nameid, name, personid, country, wocid FROM result AS a) WHERE country=:country GROUP BY '. $group. ' ORDER BY name ASC';
+  $sql= 'SELECT nameid, name, plainname, personid, country, SUM(CASE WHEN wocid<1000 THEN 1 ELSE 0 END) AS woc, SUM(CASE WHEN wocid>999 THEN 1 ELSE 0 END) AS jwoc FROM ';
+  $sql .=  '(SELECT DISTINCT a.nameid as nameid, a.name as name, plainname, a.personid as personid, country, wocid FROM result AS a JOIN';
+  $sql .= ' name ON a.nameid=name.nameid) WHERE country=:country GROUP BY '. $group. ' ORDER BY name ASC';
   $params = array(':country'=>strtoupper($country));
   $data = $db->exec($sql, $params);
   // result returned for inclusion in HTML at start-up

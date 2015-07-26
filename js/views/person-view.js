@@ -1,4 +1,5 @@
 /*global wocdb:false */
+/*global Bloodhound:false */
 (function () {
   'use strict';
   /*jslint unparam: true */
@@ -6,7 +7,8 @@
     el : '#person-page',
 
     events: {
-      'click #person-table tbody tr': 'selectWOCRace'
+      'click #person-table tbody tr': 'selectWOCRace',
+      'click #name-submit': 'getNewPerson'
     },
 
     headerTemplate: _.template($('#person-header-tmpl').html()),
@@ -14,6 +16,24 @@
     initialize : function () {
       this.listenTo(this.collection, 'update', this.render);
       wocdb.dispatcher.on('startup:person', this.render, this);
+      this.nameSearch = new Bloodhound({
+        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        remote: {
+          url: wocdb.config.url + 'namesearch/%QUERY',
+          wildcard: '%QUERY'
+        }
+      });
+
+      $('#suggest-name .typeahead').typeahead({
+        highlight: true
+      }, {
+        display: 'name',
+        limit: 20,
+        source: this.nameSearch
+      }).bind("typeahead:selected", function (obj, datum) {
+        $(this).attr("plainname", datum.plainname);
+      });
     },
 
     render : function () {
@@ -99,6 +119,12 @@
           "targets" : [0, 1, 5, 7, 9]
         }]
       });
+    },
+
+    getNewPerson: function () {
+      var person;
+      person = $('.typeahead.tt-input').attr('plainname');
+      wocdb.person.getPerson(person);
     },
 
     // click on row loads selected WOC race details

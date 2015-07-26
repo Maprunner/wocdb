@@ -27,34 +27,45 @@
       return "JWOC";
     },
 
-    getTypesDropdown: function () {
+    getGroupByDropdown: function (startHTML) {
       var dropdown;
-      dropdown = _.reduce(["WOC", "JWOC"], this.createTypeDropdownHTML, "");
+      dropdown = _.reduce([{text: "By person", value: "person"}, {text: "By country", value: "country"}], this.createGroupByDropdownHTML, startHTML);
+      return dropdown;
+    },
+
+    createGroupByDropdownHTML: function (html, type) {
+      return html + "<li group='" + type.value + "'><a>" + type.text + "</a></li>";
+    },
+
+    getTypesDropdown: function (startHTML) {
+      var dropdown;
+      dropdown = _.reduce([{text: "WOC", value: "woc"}, {text: "JWOC", value: "jwoc"}], this.createTypeDropdownHTML, startHTML);
       return dropdown;
     },
 
     createTypeDropdownHTML: function (html, type) {
-      return html + "<li type='" + type + "'><a>" + type + "</a></li>";
+      return html + "<li type='" + type.value + "'><a>" + type.text + "</a></li>";
     },
 
-    getClassesDropdown: function () {
+    getClassesDropdown: function (startHTML) {
       var dropdown;
-      dropdown = _.reduce(["Men", "Women", "Mixed"], this.createClassDropdownHTML, "");
+      dropdown = _.reduce([{text: "Men", value: "men"}, {text: "Women", value: "women"}, {text: "Mixed", value: "mixed"}], this.createClassDropdownHTML, startHTML);
       return dropdown;
     },
 
     createClassDropdownHTML: function (html, gender) {
-      return html + "<li class='" + gender + "'><a>" + gender + "</a></li>";
+      return html + "<li class='" + gender.value + "'><a>" + gender.text + "</a></li>";
     },
 
-    getRacesDropdown: function () {
+    getRacesDropdown: function (startHTML) {
       var dropdown;
-      dropdown = _.reduce(["Long", "Middle", "Sprint", "Relay", "SprintRelay"], this.createRaceDropdownHTML, "");
+      dropdown = _.reduce([{text: "Long", value: "long"}, {text: "Middle", value: "middle"}, {text: "Sprint", value: "sprint"}, {text: "Relay", value: "relay"},
+                    {text: "Sprint Relay", value: "sprintrelay"}], this.createRaceDropdownHTML, startHTML);
       return dropdown;
     },
 
     createRaceDropdownHTML: function (html, race) {
-      return html + "<li race='" + race + "'><a>" + race + "</a></li>";
+      return html + "<li race='" + race.value + "'><a>" + race.text + "</a></li>";
     },
 
     abbrevList: ["ARG", "AUS", "AUT", "AZE", "BAR", "BEL", "BLR", "BRA", "BUL", "CAN", "CHI", "CHN", "COL", "CRO", "CYP", "CZE", "DEN",
@@ -104,4 +115,5 @@
     }
   };
   wocdb.utils = utils;
+
 }());

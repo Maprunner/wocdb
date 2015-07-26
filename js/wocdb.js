@@ -11,7 +11,7 @@
 var wocdb = (function (window, $) {
   'use strict';
   function init() {
-    var year, type, raceid, personid, country;
+    var year, type, raceid, name, country;
 
     wocdb.router = new wocdb.WocdbRouter();
     wocdb.utils.hijackLinks();
@@ -25,6 +25,7 @@ var wocdb = (function (window, $) {
     wocdb.person = new wocdb.Person();
     wocdb.runners = new wocdb.Runners();
     wocdb.bestlist = new wocdb.BestList();
+    wocdb.medals = new wocdb.Medals();
     wocdb.activeWOC = new wocdb.ActiveWOC();
     wocdb.masterView = new wocdb.MasterView();
     wocdb.activeWOCView = new wocdb.ActiveWOCView({
@@ -44,6 +45,9 @@ var wocdb = (function (window, $) {
     });
     wocdb.bestView = new wocdb.BestView({
       collection : wocdb.bestlist
+    });
+    wocdb.medalView = new wocdb.MedalsView({
+      collection : wocdb.medals
     });
     wocdb.personView = new wocdb.PersonView({
       collection : wocdb.person
@@ -70,11 +74,11 @@ var wocdb = (function (window, $) {
       return;
     }
     if (wocdb.config.bootstrapPerson) {
-      wocdb.dispatcher.trigger("display:page", "person-page");
-      personid = parseInt(wocdb.config.bootstrapPerson[0].personid, 10);
-      wocdb.dispatcher.trigger("startup:person", {
-        "personid" : personid
-      });
+      if (wocdb.config.bootstrapPerson.length) {
+        wocdb.dispatcher.trigger("display:page", "person-page");
+        name = wocdb.config.bootstrapPerson[0].plainname;
+        wocdb.dispatcher.trigger("startup:person", name);
+      }
       return;
     }
     if (wocdb.config.bootstrapRunners) {
@@ -89,6 +93,11 @@ var wocdb = (function (window, $) {
     if (wocdb.config.bootstrapBestList) {
       wocdb.dispatcher.trigger("display:page", "best-page");
       wocdb.dispatcher.trigger("startup:best");
+      return;
+    }
+    if (wocdb.config.bootstrapMedals) {
+      wocdb.dispatcher.trigger("display:page", "medal-page");
+      wocdb.dispatcher.trigger("startup:medal");
       return;
     }
     wocdb.dispatcher.trigger("display:page", "all-wocs-page");
