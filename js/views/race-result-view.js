@@ -18,7 +18,7 @@
 
     render : function () {
       var i, view;
-      this.$el.empty().html("<thead><th>Pos</th><th>Name</th><th>Country</th><th></th><th>Time</th><th>% down</th></thead>");
+      this.$el.empty().html("<thead><th class='center-text'>Pos</th><th>Name</th><th>Country</th><th></th><th class='center-text'>Time</th><th class='center-text'>% down</th></thead>");
       if (this.collection.length > 0) {
         for (i = 0; i < this.collection.length; i += 1) {
           view = new wocdb.ResultView({model: this.collection.at(i)});

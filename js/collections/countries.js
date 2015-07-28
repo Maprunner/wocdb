@@ -15,7 +15,7 @@
     },
 
     createCountryDropdownHTML: function (html, model) {
-      return html + "<li country='" + model.attributes.abbr + "'><a>" + model.attributes.abbr + "</a></li>";
+      return html + "<li country='" + model.attributes.abbr + "'><a>" + model.attributes.abbr + " (" + model.attributes.country + ")</a></li>";
     },
 
     getName: function (abbreviation) {
