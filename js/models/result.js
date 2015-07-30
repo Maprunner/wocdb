@@ -13,7 +13,7 @@
           this.attributes.position = '<img src="' + wocdb.config.url + 'img/' + this.attributes.position + '.svg">';
         }
       }
-      this.attributes.percentdown = parseFloat(this.attributes.percentdown).toFixed(1);
+      this.attributes.percentdown = this.attributes.percentdown ? parseFloat(this.attributes.percentdown).toFixed(1) : "";
       // needed to get round problem with reserved words in templates!
       this.attributes.gender = this.attributes.class;
     }

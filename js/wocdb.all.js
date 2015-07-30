@@ -1,4 +1,4 @@
-// Version 0.2.0 2015-07-28T09:16:04;
+// Version 0.2.0 2015-07-29T07:21:47;
 /*
  * Maprunner  WOC Database
  * https://github.com/Maprunner/wocdb
@@ -164,7 +164,7 @@ var wocdb = (function (window, $) {
           this.attributes.position = '<img src="' + wocdb.config.url + 'img/' + this.attributes.position + '.svg">';
         }
       }
-      this.attributes.percentdown = parseFloat(this.attributes.percentdown).toFixed(1);
+      this.attributes.percentdown = this.attributes.percentdown ? parseFloat(this.attributes.percentdown).toFixed(1) : "";
       // needed to get round problem with reserved words in templates!
       this.attributes.gender = this.attributes.class;
     }
@@ -514,7 +514,7 @@ var wocdb = (function (window, $) {
     },
 
     getType: function (wocid) {
-      if (wocid < 1000) {
+      if (parseInt(wocid, 10) < 1000) {
         return "WOC";
       }
       return "JWOC";
@@ -523,11 +523,12 @@ var wocdb = (function (window, $) {
     getGroupByDropdown: function (startHTML) {
       var dropdown;
       dropdown = _.reduce([{text: "By person", value: "person"}, {text: "By country", value: "country"}], this.createGroupByDropdownHTML, startHTML);
+      dropdown = wocdb.countries.getCountriesDropdown(dropdown);
       return dropdown;
     },
 
     createGroupByDropdownHTML: function (html, type) {
-      return html + "<li group='" + type.value + "'><a>" + type.text + "</a></li>";
+      return html + "<li country='" + type.value + "'><a>" + type.text + "</a></li>";
     },
 
     getTypesDropdown: function (startHTML) {
@@ -715,10 +716,16 @@ var wocdb = (function (window, $) {
           },
           "title" : ""
         }, {
-          "data" : function (row) {
-            return row.get("time");
+          "data" : {
+            "_": function (row) {
+              return row.get("time");
+            },
+            "sort": function (row) {
+              return parseInt(row.get("seconds"), 10);
+            }
           },
-          "title" : "Time"
+          "title" : "Time",
+          "type": "num"
         }],
         "createdRow": function (row, data) {
           // add wocid to newly created row
@@ -1156,7 +1163,6 @@ var wocdb = (function (window, $) {
   wocdb.Best = Backbone.Model.extend({
     initialize: function () {
       this.attributes.flag = wocdb.utils.getFlagFile(this.attributes.country);
-      this.attributes.venue = wocdb.utils.getVenue(this.attributes.wocid);
       // keep numeric copy of position to allow sorting
       this.attributes.numericPosition = this.attributes.position;
       // best only used for finals so don't need to check for qualifiers'
@@ -1291,10 +1297,16 @@ var wocdb = (function (window, $) {
           },
           "title" : "Venue"
         }, {
-          "data" : function (row) {
-            return row.get("time");
+          "data" : {
+            "_": function (row) {
+              return row.get("time");
+            },
+            "sort": function (row) {
+              return parseInt(row.get("seconds"), 10);
+            }
           },
-          "title" : "Time"
+          "title" : "Time",
+          "type": "num"
         }, {
           "data" : function (row) {
             return row.get("percentdown");
@@ -1445,7 +1457,40 @@ var wocdb = (function (window, $) {
       this.gender = details.gender;
       this.race = details.race;
       wocdb.router.navigate('medals/' + this.group + '/' + this.type + '/' + this.gender + '/' + this.race);
-      this.fetch();
+      this.fetch({reset: true});
+    },
+
+    getMedalCount : function () {
+      var medals;
+      medals = {G: 0, S: 0, B: 0, relayids: []};
+      medals = _.reduce(this.models, function (medals, model) {
+        var pos, raceid, countThis;
+        countThis = false;
+        pos = parseInt(model.attributes.numericPosition, 10);
+        if (pos < 4) {
+          if (parseInt(model.attributes.final, 10) > 3) {
+            raceid = parseInt(model.attributes.raceid, 10);
+            if (_.indexOf(medals.relayids, raceid) === -1) {
+              medals.relayids.push(raceid);
+              countThis = true;
+            }
+          } else {
+            countThis = true;
+          }
+        }
+        if (countThis) {
+          if (pos === 1) {
+            medals.G += 1;
+          } else if (pos === 2) {
+            medals.S += 1;
+          } else {
+            medals.B += 1;
+          }
+        }
+        return medals;
+      }, medals);
+      medals.total = medals.G + medals.S + medals.B;
+      return medals;
     }
   });
 }());
@@ -1457,7 +1502,7 @@ var wocdb = (function (window, $) {
     el : '#medal-page',
 
     events: {
-      'click #medal-table tbody tr': 'selectPerson',
+      'click #medal-table tbody tr': 'selectFromTable',
       'click #groups li': 'selectGroup',
       'click #races li': 'selectRace',
       'click #classes li': 'selectClass',
@@ -1467,7 +1512,8 @@ var wocdb = (function (window, $) {
 
     initialize : function () {
       var dropdown;
-      this.listenTo(this.collection, 'update', this.render);
+      this.listenTo(this.collection, 'sync', this.render);
+      this.listenTo(this.collection, 'reset', this.render);
       wocdb.dispatcher.on('startup:medal', this.render, this);
       dropdown = wocdb.utils.getGroupByDropdown("");
       this.$("#groups").empty().html(dropdown);
@@ -1497,6 +1543,51 @@ var wocdb = (function (window, $) {
         this.medalTable.destroy();
       }
       this.renderHeader();
+      if ((this.group === "person") || (this.group === "country")) {
+        this.renderPersonCountryTable();
+      } else {
+        this.renderMedallistTable();
+      }
+    },
+
+    renderHeader: function () {
+      var text;
+      if ((this.group === "person") ||  (this.group === "country")) {
+        text = "Medal table by person for" + this.getHeaderText();
+      } else {
+        text = "Medallists for " + wocdb.countries.getName(this.group) + this.getHeaderText() + this.getMedalCount();
+      }
+      this.$("#medal-header-text").empty().html(text);
+    },
+
+    getHeaderText: function () {
+      var text;
+      text = ": ";
+      if (this.type === "all") {
+        text += "WOC and JWOC : ";
+      } else {
+        text += this.type.toUpperCase() + " : ";
+      }
+      if (this.gender === "all") {
+        text += "All classes : ";
+      } else {
+        text += wocdb.utils.capitalise(this.gender) + " : ";
+      }
+      if (this.race === "all") {
+        text += "All races.  ";
+      } else {
+        text += wocdb.utils.capitalise(this.race) + ".  ";
+      }
+      return text;
+    },
+
+    getMedalCount: function () {
+      var medals;
+      medals = this.collection.getMedalCount();
+      return "Gold: " + medals.G + " : Silver: " + medals.S + " : Bronze: " + medals.B + ": Total: " + medals.total + ".";
+    },
+
+    renderPersonCountryTable: function () {
       this.medalTable = $('#medal-table').empty().DataTable({
         data : this.collection.models,
         columns : [{
@@ -1540,7 +1631,11 @@ var wocdb = (function (window, $) {
         }],
         "createdRow": function (row, data) {
           // add personid to newly created row
-          $(row).attr('plainname', data.attributes.plainname);
+          if (this.group === "person") {
+            $(row).attr('plainname', data.attributes.plainname);
+          } else {
+            $(row).attr('country', data.attributes.country.toLowerCase());
+          }
         },
         "lengthMenu" : [[20, 50, 100, -1], [20, 50, 100, "All"]],
         "order" : [[6, 'desc'], [3, 'desc'], [4, 'desc'], [5, 'desc']],
@@ -1553,14 +1648,84 @@ var wocdb = (function (window, $) {
       });
     },
 
-    renderHeader: function () {
-      var text;
-      if (this.group === "person") {
-        text = "Medals by person for " + this.type.toUpperCase() + " : " + wocdb.utils.capitalise(this.gender) + " : " + wocdb.utils.capitalise(this.race);
-      } else {
-        text = "Medals by country for " + this.type.toUpperCase() + " : " + wocdb.utils.capitalise(this.gender) + " : " + wocdb.utils.capitalise(this.race);
-      }
-      this.$("#medal-header-text").empty().html(text);
+    renderMedallistTable: function () {
+      this.medalTable = $('#medal-table').empty().DataTable({
+        data : this.collection.models,
+        columns : [{
+          "data" : function (row) {
+            return row.get("name");
+          },
+          "title" : "Name"
+        }, {
+          "data" : function (row) {
+            return row.get("country");
+          },
+          "title" : "Country"
+        }, {
+          "data" : function (row) {
+            return "<img src='" + row.get("flag") + "'>";
+          },
+          "title" : ""
+        }, {
+          "data" : function (row) {
+            return row.get("numericPosition");
+          },
+          "title" : "Position",
+          "render": function (data, type) {
+            if (type === 'display') {
+              if (data < 4) {
+                return '<img src="' + wocdb.config.url + 'img/' + data + '.svg">';
+              }
+              if (data === 999) {
+                return "-";
+              }
+            }
+            return data;
+          }
+        }, {
+          "data" : function (row) {
+            return row.get("year");
+          },
+          "title" : "Year"
+        }, {
+          "data" : function (row) {
+            return wocdb.utils.getType(row.get("wocid"));
+          },
+          "title" : "Event"
+        }, {
+          "data" : function (row) {
+            return wocdb.utils.getVenue(row.get("wocid"));
+          },
+          "title" : "Venue"
+        }, {
+          "data" : function (row) {
+            return row.get("race");
+          },
+          "title" : "Race"
+        }, {
+          "data" : {
+            "_": function (row) {
+              return row.get("time");
+            },
+            "sort": function (row) {
+              return parseInt(row.get("seconds"), 10);
+            }
+          },
+          "title" : "Time",
+          "type": "num"
+        }],
+        "createdRow": function (row, data) {
+          $(row).attr('plainname', data.attributes.plainname);
+        },
+        "lengthMenu" : [[20, 50, 100, -1], [20, 50, 100, "All"]],
+        "order" : [[3, 'asc'], [4, 'desc'], [6, 'asc']],
+        'autoWidth' : true,
+        'searching' : false,
+        "columnDefs" : [{
+          className : "dt-center",
+          "targets" : [1, 2, 3, 4, 5, 7, 8]
+        }]
+      });
     },
 
     // submit button
@@ -1570,9 +1735,12 @@ var wocdb = (function (window, $) {
 
     // click on row in table loads selected person
     //think about what to do with click on country
-    selectPerson: function (evt) {
+    selectFromTable: function (evt) {
       var name;
-      if (this.group === "person") {
+      if (this.group === "country") {
+        this.group = $(evt.currentTarget).attr('country');
+        wocdb.dispatcher.trigger("change:medals", {group: this.group, type: this.type, gender: this.gender, race: this.race});
+      } else {
         wocdb.dispatcher.trigger("display:page", "person-page");
         name = $(evt.currentTarget).attr('plainname');
         wocdb.dispatcher.trigger("change:person", name);
@@ -1613,14 +1781,20 @@ var wocdb = (function (window, $) {
     },
 
     selectGroup: function (evt) {
-      this.setGroup($(evt.currentTarget).attr('group'));
+      this.setGroup($(evt.currentTarget).attr('country'));
     },
 
     setGroup: function (group) {
-      // expecting "country" or "person"
+      // expecting "country" or "person" or a three=-letter country code
       var text;
-      this.group = group;
-      text = group === "person" ? "By person" : "By country";
+      this.group = group.toLowerCase();
+      if (group === "person") {
+        text = "By person";
+      } else if (group === "country") {
+        text = "By country";
+      } else {
+        text = group.toUpperCase();
+      }
       this.$("#dropdown-group").empty().html(text + '<span class="caret">');
     }
   });

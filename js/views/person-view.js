@@ -102,10 +102,16 @@
           },
           "title" : ""
         }, {
-          "data" : function (row) {
-            return row.get("time");
+          "data" : {
+            "_": function (row) {
+              return row.get("time");
+            },
+            "sort": function (row) {
+              return parseInt(row.get("seconds"), 10);
+            }
           },
-          "title" : "Time"
+          "title" : "Time",
+          "type": "num"
         }],
         "createdRow": function (row, data) {
           // add wocid to newly created row

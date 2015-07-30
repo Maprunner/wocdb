@@ -6,7 +6,7 @@
     el : '#medal-page',
 
     events: {
-      'click #medal-table tbody tr': 'selectPerson',
+      'click #medal-table tbody tr': 'selectFromTable',
       'click #groups li': 'selectGroup',
       'click #races li': 'selectRace',
       'click #classes li': 'selectClass',
@@ -16,7 +16,8 @@
 
     initialize : function () {
       var dropdown;
-      this.listenTo(this.collection, 'update', this.render);
+      this.listenTo(this.collection, 'sync', this.render);
+      this.listenTo(this.collection, 'reset', this.render);
       wocdb.dispatcher.on('startup:medal', this.render, this);
       dropdown = wocdb.utils.getGroupByDropdown("");
       this.$("#groups").empty().html(dropdown);
@@ -46,6 +47,51 @@
         this.medalTable.destroy();
       }
       this.renderHeader();
+      if ((this.group === "person") || (this.group === "country")) {
+        this.renderPersonCountryTable();
+      } else {
+        this.renderMedallistTable();
+      }
+    },
+
+    renderHeader: function () {
+      var text;
+      if ((this.group === "person") ||  (this.group === "country")) {
+        text = "Medal table by person for" + this.getHeaderText();
+      } else {
+        text = "Medallists for " + wocdb.countries.getName(this.group) + this.getHeaderText() + this.getMedalCount();
+      }
+      this.$("#medal-header-text").empty().html(text);
+    },
+
+    getHeaderText: function () {
+      var text;
+      text = ": ";
+      if (this.type === "all") {
+        text += "WOC and JWOC : ";
+      } else {
+        text += this.type.toUpperCase() + " : ";
+      }
+      if (this.gender === "all") {
+        text += "All classes : ";
+      } else {
+        text += wocdb.utils.capitalise(this.gender) + " : ";
+      }
+      if (this.race === "all") {
+        text += "All races.  ";
+      } else {
+        text += wocdb.utils.capitalise(this.race) + ".  ";
+      }
+      return text;
+    },
+
+    getMedalCount: function () {
+      var medals;
+      medals = this.collection.getMedalCount();
+      return "Gold: " + medals.G + " : Silver: " + medals.S + " : Bronze: " + medals.B + ": Total: " + medals.total + ".";
+    },
+
+    renderPersonCountryTable: function () {
       this.medalTable = $('#medal-table').empty().DataTable({
         data : this.collection.models,
         columns : [{
@@ -89,7 +135,11 @@
         }],
         "createdRow": function (row, data) {
           // add personid to newly created row
-          $(row).attr('plainname', data.attributes.plainname);
+          if (this.group === "person") {
+            $(row).attr('plainname', data.attributes.plainname);
+          } else {
+            $(row).attr('country', data.attributes.country.toLowerCase());
+          }
         },
         "lengthMenu" : [[20, 50, 100, -1], [20, 50, 100, "All"]],
         "order" : [[6, 'desc'], [3, 'desc'], [4, 'desc'], [5, 'desc']],
@@ -102,14 +152,84 @@
       });
     },
 
-    renderHeader: function () {
-      var text;
-      if (this.group === "person") {
-        text = "Medals by person for " + this.type.toUpperCase() + " : " + wocdb.utils.capitalise(this.gender) + " : " + wocdb.utils.capitalise(this.race);
-      } else {
-        text = "Medals by country for " + this.type.toUpperCase() + " : " + wocdb.utils.capitalise(this.gender) + " : " + wocdb.utils.capitalise(this.race);
-      }
-      this.$("#medal-header-text").empty().html(text);
+    renderMedallistTable: function () {
+      this.medalTable = $('#medal-table').empty().DataTable({
+        data : this.collection.models,
+        columns : [{
+          "data" : function (row) {
+            return row.get("name");
+          },
+          "title" : "Name"
+        }, {
+          "data" : function (row) {
+            return row.get("country");
+          },
+          "title" : "Country"
+        }, {
+          "data" : function (row) {
+            return "<img src='" + row.get("flag") + "'>";
+          },
+          "title" : ""
+        }, {
+          "data" : function (row) {
+            return row.get("numericPosition");
+          },
+          "title" : "Position",
+          "render": function (data, type) {
+            if (type === 'display') {
+              if (data < 4) {
+                return '<img src="' + wocdb.config.url + 'img/' + data + '.svg">';
+              }
+              if (data === 999) {
+                return "-";
+              }
+            }
+            return data;
+          }
+        }, {
+          "data" : function (row) {
+            return row.get("year");
+          },
+          "title" : "Year"
+        }, {
+          "data" : function (row) {
+            return wocdb.utils.getType(row.get("wocid"));
+          },
+          "title" : "Event"
+        }, {
+          "data" : function (row) {
+            return wocdb.utils.getVenue(row.get("wocid"));
+          },
+          "title" : "Venue"
+        }, {
+          "data" : function (row) {
+            return row.get("race");
+          },
+          "title" : "Race"
+        }, {
+          "data" : {
+            "_": function (row) {
+              return row.get("time");
+            },
+            "sort": function (row) {
+              return parseInt(row.get("seconds"), 10);
+            }
+          },
+          "title" : "Time",
+          "type": "num"
+        }],
+        "createdRow": function (row, data) {
+          $(row).attr('plainname', data.attributes.plainname);
+        },
+        "lengthMenu" : [[20, 50, 100, -1], [20, 50, 100, "All"]],
+        "order" : [[3, 'asc'], [4, 'desc'], [6, 'asc']],
+        'autoWidth' : true,
+        'searching' : false,
+        "columnDefs" : [{
+          className : "dt-center",
+          "targets" : [1, 2, 3, 4, 5, 7, 8]
+        }]
+      });
     },
 
     // submit button
@@ -119,9 +239,12 @@
 
     // click on row in table loads selected person
     //think about what to do with click on country
-    selectPerson: function (evt) {
+    selectFromTable: function (evt) {
       var name;
-      if (this.group === "person") {
+      if (this.group === "country") {
+        this.group = $(evt.currentTarget).attr('country');
+        wocdb.dispatcher.trigger("change:medals", {group: this.group, type: this.type, gender: this.gender, race: this.race});
+      } else {
         wocdb.dispatcher.trigger("display:page", "person-page");
         name = $(evt.currentTarget).attr('plainname');
         wocdb.dispatcher.trigger("change:person", name);
@@ -162,14 +285,20 @@
     },
 
     selectGroup: function (evt) {
-      this.setGroup($(evt.currentTarget).attr('group'));
+      this.setGroup($(evt.currentTarget).attr('country'));
     },
 
     setGroup: function (group) {
-      // expecting "country" or "person"
+      // expecting "country" or "person" or a three=-letter country code
       var text;
-      this.group = group;
-      text = group === "person" ? "By person" : "By country";
+      this.group = group.toLowerCase();
+      if (group === "person") {
+        text = "By person";
+      } else if (group === "country") {
+        text = "By country";
+      } else {
+        text = group.toUpperCase();
+      }
       this.$("#dropdown-group").empty().html(text + '<span class="caret">');
     }
   });

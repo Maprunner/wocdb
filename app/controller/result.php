@@ -74,15 +74,8 @@ private function getBest($f3, $action) {
   $type = $f3->get('PARAMS.type');
   if ($country == "ALL") {
     // returns a list of best results by country
-    $sql = "SELECT personid, z.year AS year, time, percentdown, z.country AS country, name, position, a.country AS venue FROM ";
-    $sql .= "(SELECT r.personid, r.year, r.time, r.percentdown, r.class, r.final, r.wocid, r.country, r.name, r.position FROM result r JOIN "; 
-    $sql .= "(SELECT w.country, MIN(w.position) AS minposition FROM result w WHERE w.class=:class";
-    $sql .= " AND w.final=:racefilter AND ". $typefilterw . " GROUP BY w.country) AS x ON r.position=minposition AND ";
-    $sql .= "r.country=x.country) AS z, woc a WHERE z.wocid=a.id AND z.class=:class2 AND z.final=:racefilter2 AND " . $typefilterz;
-    $sql .= " ORDER BY z.country ASC, z.year ASC";
-    
-    $sql = "SELECT z.personid as personid, z.year AS year, time, percentdown, z.country AS country, z.name as name, n.plainname as plainname, position, a.country AS venue FROM ";
-    $sql .= "((SELECT r.personid as personid, r.nameid as nameid, r.year, r.time, r.percentdown, r.class, r.final, r.wocid, r.country, r.name, r.position FROM result r JOIN "; 
+    $sql = "SELECT z.personid as personid, z.year AS year, time, seconds, percentdown, z.country AS country, z.name as name, n.plainname as plainname, position, a.country AS venue FROM ";
+    $sql .= "((SELECT r.personid as personid, r.nameid as nameid, r.year, r.time, r.seconds, r.percentdown, r.class, r.final, r.wocid, r.country, r.name, r.position FROM result r JOIN "; 
     $sql .= "(SELECT w.country, MIN(w.position) AS minposition FROM result w WHERE w.class=:class";
     $sql .= " AND w.final=:racefilter AND ". $typefilterw . " GROUP BY w.country) AS x ON r.position=minposition AND ";
     $sql .= "r.country=x.country) AS z) JOIN name AS n ON z.nameid=n.nameid, woc a WHERE z.wocid=a.id AND z.class=:class2 AND z.final=:racefilter2 AND " . $typefilterz;
@@ -95,7 +88,7 @@ private function getBest($f3, $action) {
     );
   } else {
     // returns a list of best results for given country
-    $sql = "SELECT n.personid as personid, n.plainname as plainname, percentdown, r.year as year, r.position as position, r.name as name, r.country as country, w.country as venue, time ";
+    $sql = "SELECT n.personid as personid, n.plainname as plainname, percentdown, r.year as year, r.position as position, r.name as name, r.country as country, w.country as venue, time, seconds ";
     $sql .= "FROM result AS r JOIN name AS n ON r.nameid=n.nameid, woc AS w WHERE (w.id=r.wocid) AND ";
     $sql .= $typefilter ." AND (final=:race) AND (class=:class) AND (r.country=:country)";
     $sql .= " ORDER BY position ASC, year DESC, name ASC";
@@ -166,21 +159,10 @@ private function getMedalData($f3, $action) {
         $racefilter= " AND final>0 ";
         break;
   }
-  
-  //echo $group." ".$typefilter. " " .$racefilter. " ". $classfilter;
+
   if ($group == "country") {
   // wow this is fun:  need to avoid multiple counting relays so you select one of each relay result UNION all individual results
   // and use that to extract results
-    $sql = "SELECT country,SUM(CASE WHEN position=1 THEN 1 ELSE 0 END) AS G,";
-    $sql .= "SUM(CASE WHEN position=2 THEN 1 ELSE 0 END) AS S, SUM(CASE WHEN position=3 THEN 1 ELSE 0 END) AS B,";
-    $sql .= "SUM(CASE WHEN (position=1) OR (position=2) OR (position = 3) THEN 1 ELSE 0 END) AS total FROM result as w ";
-    $sql .= "JOIN (SELECT id FROM result AS a WHERE position=1 AND (final=4 OR final=5) GROUP BY raceid ";
-    $sql .= "UNION (SELECT id FROM result AS b WHERE position=2 AND (final=4 OR final=5) GROUP BY raceid) UNION ";
-    $sql .= "(SELECT id FROM result AS c WHERE position=3 AND (final=4 OR final=5) GROUP BY raceid) UNION ";
-    $sql .= "(SELECT id FROM result AS d WHERE (position<4) AND (final<4 AND final>0))) AS x ON (w.id = x.id) WHERE ";
-    $sql .= $typefilter.$racefilter.$classfilter;
-    $sql .= " AND (position<4) GROUP BY country";
-
     $sql = "SELECT country,SUM(CASE WHEN position=1 THEN 1 ELSE 0 END) AS G,";
     $sql .= "SUM(CASE WHEN position=2 THEN 1 ELSE 0 END) AS S, SUM(CASE WHEN position=3 THEN 1 ELSE 0 END) AS B,";
     $sql .= "SUM(CASE WHEN (position=1) OR (position=2) OR (position = 3) THEN 1 ELSE 0 END) AS total FROM result as w ";
@@ -190,24 +172,29 @@ private function getMedalData($f3, $action) {
     $sql .= "SELECT id FROM result AS d WHERE (position<4) AND (final<4 AND final>0)) AS x ON (w.id = x.id) WHERE ";
     $sql .= $typefilter.$racefilter.$classfilter;
     $sql .= " AND (position<4) GROUP BY country";
-
-
     $params = array(
     );
-  } else {
+  } else if ($group == "person") {
     // returns a list of all individual medal totals
     $sql = "SELECT r.personid as personid, r.name as name, name.plainname as plainname, country, SUM(CASE WHEN position = 1 THEN 1 ELSE 0 END) AS G,";
     $sql .= "SUM(CASE WHEN position = 2 THEN 1 ELSE 0 END) AS S, SUM(CASE WHEN position = 3 THEN 1 ELSE 0 END) AS B, ";
     $sql .= "SUM(CASE WHEN position<4 THEN 1 ELSE 0 END) AS total FROM result as r JOIN name ON name.nameid=r.nameid WHERE ";
     $sql .= $typefilter.$racefilter.$classfilter;
     $sql .= " AND (position < 4) GROUP BY r.personid";
-       
     $params = array(
     );
+  } else {
+    // returns a list of all medallists for a given country
+    $sql = "SELECT r.id as id, r.name as name, plainname, country, time, position, year, wocid, race, raceid, class, final from result r JOIN name n ON (n.nameid=r.nameid) WHERE ".$typefilter.$racefilter.$classfilter." AND (position < 4) AND ";
+    $sql .= "(country='".strtoupper(substr($group, 0, 3))."') ORDER BY position ASC, year DESC, raceid ASC";
+    $params = array(
+    );
+
   }
-  //echo $sql;
+
+  // echo $sql;
   //print_r($params);
-    $data = $db->exec($sql, $params);
+  $data = $db->exec($sql, $params);
 
   // result returned for inclusion in HTML at start-up
   if ($action == 'return') {

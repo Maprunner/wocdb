@@ -93,10 +93,16 @@
           },
           "title" : "Venue"
         }, {
-          "data" : function (row) {
-            return row.get("time");
+          "data" : {
+            "_": function (row) {
+              return row.get("time");
+            },
+            "sort": function (row) {
+              return parseInt(row.get("seconds"), 10);
+            }
           },
-          "title" : "Time"
+          "title" : "Time",
+          "type": "num"
         }, {
           "data" : function (row) {
             return row.get("percentdown");

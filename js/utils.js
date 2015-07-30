@@ -21,7 +21,7 @@
     },
 
     getType: function (wocid) {
-      if (wocid < 1000) {
+      if (parseInt(wocid, 10) < 1000) {
         return "WOC";
       }
       return "JWOC";
@@ -30,11 +30,12 @@
     getGroupByDropdown: function (startHTML) {
       var dropdown;
       dropdown = _.reduce([{text: "By person", value: "person"}, {text: "By country", value: "country"}], this.createGroupByDropdownHTML, startHTML);
+      dropdown = wocdb.countries.getCountriesDropdown(dropdown);
       return dropdown;
     },
 
     createGroupByDropdownHTML: function (html, type) {
-      return html + "<li group='" + type.value + "'><a>" + type.text + "</a></li>";
+      return html + "<li country='" + type.value + "'><a>" + type.text + "</a></li>";
     },
 
     getTypesDropdown: function (startHTML) {
