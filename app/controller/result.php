@@ -204,12 +204,6 @@ private function getMedalData($f3, $action) {
   echo json_encode($data);
 }
 
-    // returns a list of all individual medals
-    // $sql = 'SELECT r.personid, r.year, r.class, r.position, r.name, r.country, w.country as venue ';
-    // $sql .= 'FROM woc AS w, result AS r WHERE r.wocid=w.id AND r.position<4 AND r.final >0 ';
-    // $sql .= 'ORDER BY r.year ASC, r.final ASC, r.raceid ASC, r.position ASC';
-
-
 private function getRunners($f3, $action) {
   $db = $f3->get("db.instance");
   $country = $f3->get('PARAMS.country');
@@ -220,10 +214,21 @@ private function getRunners($f3, $action) {
   } else {
     $group = "personid";
   }
-  $sql= 'SELECT nameid, name, plainname, personid, country, SUM(CASE WHEN wocid<1000 THEN 1 ELSE 0 END) AS woc, SUM(CASE WHEN wocid>999 THEN 1 ELSE 0 END) AS jwoc FROM ';
-  $sql .=  '(SELECT DISTINCT a.nameid as nameid, a.name as name, plainname, a.personid as personid, country, wocid FROM result AS a JOIN';
-  $sql .= ' name ON a.nameid=name.nameid) WHERE country=:country GROUP BY '. $group. ' ORDER BY name ASC';
+  //$sql= 'SELECT nameid, name, plainname, personid, country, SUM(CASE WHEN wocid<1000 THEN 1 ELSE 0 END) AS woc, SUM(CASE WHEN wocid>999 THEN 1 ELSE 0 END) AS jwoc FROM ';
+  //$sql .=  '(SELECT DISTINCT a.nameid as nameid, a.name as name, plainname, a.personid as personid, country, wocid FROM result AS a JOIN';
+  //$sql .= ' name ON a.nameid=name.nameid) WHERE country=:country GROUP BY '. $group. ' ORDER BY name ASC';
+  //$params = array(':country'=>strtoupper($country));
+
+  $sql= 'SELECT nameid, name, plainname, personid, country, SUM(wocraces) AS wocraces, SUM(jwocraces) AS jwocraces, SUM(CASE WHEN wocid<1000 THEN 1 ELSE 0 END) AS woc, ';
+  $sql .=  'SUM(CASE WHEN wocid>999 THEN 1 ELSE 0 END) AS jwoc FROM (SELECT a.nameid as nameid, a.name as name, plainname, a.personid as personid, country, wocid,';
+  $sql .= 'CASE WHEN wocid<1000 THEN COUNT(raceid) ELSE 0 END as wocraces, CASE WHEN wocid>999 THEN COUNT(raceid) ELSE 0 END as jwocraces';
+  $sql .= ' FROM result AS a JOIN name ON a.nameid=name.nameid WHERE country=:country GROUP BY wocid, a.'. $group . ') GROUP BY '. $group. ' ORDER BY name ASC';
+ 
+
+
+
   $params = array(':country'=>strtoupper($country));
+
   $data = $db->exec($sql, $params);
   // result returned for inclusion in HTML at start-up
   if ($action == 'return') {

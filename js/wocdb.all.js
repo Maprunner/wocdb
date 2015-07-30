@@ -1,4 +1,4 @@
-// Version 0.2.0 2015-07-29T07:21:47;
+// Version 0.2.0 2015-07-30T20:35:06;
 /*
  * Maprunner  WOC Database
  * https://github.com/Maprunner/wocdb
@@ -155,7 +155,7 @@ var wocdb = (function (window, $) {
   wocdb.Result = Backbone.Model.extend({
 
     initialize : function () {
-      this.attributes.flag = wocdb.utils.getFlagFile(this.attributes.country);
+      this.attributes.flag = wocdb.countries.getFlagFile(this.attributes.country);
       this.attributes.venue = wocdb.utils.getVenue(this.attributes.wocid);
       // keep numeric copy of position to allow sorting
       this.attributes.numericPosition = this.attributes.position;
@@ -562,27 +562,6 @@ var wocdb = (function (window, $) {
       return html + "<li race='" + race.value + "'><a>" + race.text + "</a></li>";
     },
 
-    abbrevList: ["ARG", "AUS", "AUT", "AZE", "BAR", "BEL", "BLR", "BRA", "BUL", "CAN", "CHI", "CHN", "COL", "CRO", "CYP", "CZE", "DEN",
-                    "ECU", "ESP", "EST", "FIN", "FRA", "GBR", "GEO", "GER", "GRE", "HKG", "HUN", "IRL", "ISR", "ITA", "JPN", "KAZ", "KOR",
-                    "LAT", "LIE", "LTU", "MDA", "MKD", "MNE", "NED", "NOR", "NZL", "POL", "POR", "PRK", "ROU", "RSA", "RUS", "SCG", "SLO", "SRB",
-                    "SUI", "SVK", "SWE", "TPE", "TUR", "UKR", "URU", "USA"],
-
-    filePrefix: ["ar", "au", "at", "az", "bb", "be", "by", "br", "bg", "ca", "cl", "cn", "co", "hr", "cy", "cz", "dk",
-                 "ec", "es", "ee", "fi", "fr", "gb", "ge", "de", "gr", "hk", "hu", "ie", "il", "it", "jp", "kg", "kr",
-                 "lv", "li", "lt", "md", "mk", "me", "nl", "no", "nz", "pl", "pt", "kp", "ro", "za", "ru", "xx", "si", "rs",
-                 "ch", "sk", "se", "tw", "tr", "ua", "uy", "us"],
-
-    // passed in GBR, returns gb, to allow png flag file referencing
-    getFlagFile: function (abbrev) {
-      var index, prefix;
-      prefix = "xx";
-      index = this.abbrevList.indexOf(abbrev);
-      if (index !== -1) {
-        prefix = this.filePrefix[index];
-      }
-      return wocdb.config.url + 'img/' + prefix + '.png';
-    },
-
     // All navigation that is relative should be passed through the navigate
     // method, to be processed by the router. If the link has a `data-bypass`
     // attribute, bypass the delegation completely.
@@ -704,7 +683,8 @@ var wocdb = (function (window, $) {
           "data" : function (row) {
             return row.get("name");
           },
-          "title" : "Name"
+          "title" : "Name",
+          "width": "20%"
         }, {
           "data" : function (row) {
             return row.get("country");
@@ -1019,7 +999,7 @@ var wocdb = (function (window, $) {
   'use strict';
   wocdb.Runner = Backbone.Model.extend({
     initialize : function () {
-      this.attributes.flag = wocdb.utils.getFlagFile(this.attributes.country);
+      this.attributes.flag = wocdb.countries.getFlagFile(this.attributes.country);
     }
   });
 }());
@@ -1093,7 +1073,8 @@ var wocdb = (function (window, $) {
           "data" : function (row) {
             return row.get("name");
           },
-          "title" : "Name"
+          "title" : "Name",
+          "width": "20%"
         }, {
           "data" : function (row) {
             return row.get("country");
@@ -1121,9 +1102,19 @@ var wocdb = (function (window, $) {
           "title" : "WOCs"
         }, {
           "data" : function (row) {
+            return row.get("wocraces");
+          },
+          "title" : "WOC races"
+        }, {
+          "data" : function (row) {
             return row.get("jwoc");
           },
           "title" : "JWOCs"
+        }, {
+          "data" : function (row) {
+            return row.get("jwocraces");
+          },
+          "title" : "JWOC races"
         }],
         "createdRow": function (row, data) {
           // add plainname to newly created row
@@ -1135,7 +1126,7 @@ var wocdb = (function (window, $) {
         'searching' : false,
         "columnDefs" : [{
           className : "dt-center",
-          "targets" : [1, 3, 4, 5, 6]
+          "targets" : [1, 3, 4, 5, 6, 7, 8]
         }]
       });
     },
@@ -1162,7 +1153,7 @@ var wocdb = (function (window, $) {
   'use strict';
   wocdb.Best = Backbone.Model.extend({
     initialize: function () {
-      this.attributes.flag = wocdb.utils.getFlagFile(this.attributes.country);
+      this.attributes.flag = wocdb.countries.getFlagFile(this.attributes.country);
       // keep numeric copy of position to allow sorting
       this.attributes.numericPosition = this.attributes.position;
       // best only used for finals so don't need to check for qualifiers'
@@ -1259,7 +1250,8 @@ var wocdb = (function (window, $) {
           "data" : function (row) {
             return row.get("name");
           },
-          "title" : "Name"
+          "title" : "Name",
+          "width": "20%"
         }, {
           "data" : function (row) {
             return row.get("country");
@@ -1383,8 +1375,10 @@ var wocdb = (function (window, $) {
     },
 
     setCountry: function (country) {
+      var text;
       this.country = country.toLowerCase();
-      this.$("#dropdown-country").empty().html(this.country.toUpperCase() + '<span class="caret">');
+      text = this.country === "all" ? "All countries" : this.country.toUpperCase();
+      this.$("#dropdown-country").empty().html(text + '<span class="caret">');
     }
   });
 }());
@@ -1416,8 +1410,18 @@ var wocdb = (function (window, $) {
         return model.attributes.country;
       }
       return "";
-    }
+    },
 
+    // passed in GBR, returns gb, to allow png flag file referencing
+    getFlagFile: function (abbrev) {
+      var model, prefix;
+      prefix = "xx";
+      model = this.findWhere({"abbr": abbrev});
+      if (model) {
+        prefix = model.attributes.code;
+      }
+      return wocdb.config.url + 'img/' + prefix + '.png';
+    }
   });
 
 }());
@@ -1426,7 +1430,7 @@ var wocdb = (function (window, $) {
   'use strict';
   wocdb.Medal = Backbone.Model.extend({
     initialize: function () {
-      this.attributes.flag = wocdb.utils.getFlagFile(this.attributes.country);
+      this.attributes.flag = wocdb.countries.getFlagFile(this.attributes.country);
       this.attributes.numericPosition = this.attributes.position;
       if (this.attributes.position < 4) {
         this.attributes.position = '<img src="' + wocdb.config.url + 'img/' + this.attributes.position + '.svg">';
@@ -1460,6 +1464,9 @@ var wocdb = (function (window, $) {
       this.fetch({reset: true});
     },
 
+    // looks through a colletion of medal winners and generates a G:S:B count
+    // which would be easy but you need to avoid counting relay medals more than once...
+    // but multiple medals in individual races do count so you can't just filter on unique raceid...
     getMedalCount : function () {
       var medals;
       medals = {G: 0, S: 0, B: 0, relayids: []};
@@ -1467,14 +1474,18 @@ var wocdb = (function (window, $) {
         var pos, raceid, countThis;
         countThis = false;
         pos = parseInt(model.attributes.numericPosition, 10);
+        // shoud only a winners but we might call it from somewhere else later
         if (pos < 4) {
+          // finals 4 and 5 are relays
           if (parseInt(model.attributes.final, 10) > 3) {
             raceid = parseInt(model.attributes.raceid, 10);
+            // only count if we haven't counted this raceid already'
             if (_.indexOf(medals.relayids, raceid) === -1) {
               medals.relayids.push(raceid);
               countThis = true;
             }
           } else {
+            // count all individual races
             countThis = true;
           }
         }
@@ -1588,6 +1599,7 @@ var wocdb = (function (window, $) {
     },
 
     renderPersonCountryTable: function () {
+      var self = this;
       this.medalTable = $('#medal-table').empty().DataTable({
         data : this.collection.models,
         columns : [{
@@ -1597,7 +1609,8 @@ var wocdb = (function (window, $) {
             }
             return wocdb.countries.getName(row.get("country"));
           },
-          "title" : "Name"
+          "title" : "Name",
+          "width": "20%"
         }, {
           "data" : function (row) {
             return row.get("country");
@@ -1631,7 +1644,7 @@ var wocdb = (function (window, $) {
         }],
         "createdRow": function (row, data) {
           // add personid to newly created row
-          if (this.group === "person") {
+          if (self.group === "person") {
             $(row).attr('plainname', data.attributes.plainname);
           } else {
             $(row).attr('country', data.attributes.country.toLowerCase());
@@ -1655,7 +1668,8 @@ var wocdb = (function (window, $) {
           "data" : function (row) {
             return row.get("name");
           },
-          "title" : "Name"
+          "title" : "Name",
+          "width": "20%"
         }, {
           "data" : function (row) {
             return row.get("country");

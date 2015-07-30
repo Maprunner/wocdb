@@ -35,7 +35,8 @@
           "data" : function (row) {
             return row.get("name");
           },
-          "title" : "Name"
+          "title" : "Name",
+          "width": "20%"
         }, {
           "data" : function (row) {
             return row.get("country");
@@ -63,9 +64,19 @@
           "title" : "WOCs"
         }, {
           "data" : function (row) {
+            return row.get("wocraces");
+          },
+          "title" : "WOC races"
+        }, {
+          "data" : function (row) {
             return row.get("jwoc");
           },
           "title" : "JWOCs"
+        }, {
+          "data" : function (row) {
+            return row.get("jwocraces");
+          },
+          "title" : "JWOC races"
         }],
         "createdRow": function (row, data) {
           // add plainname to newly created row
@@ -77,7 +88,7 @@
         'searching' : false,
         "columnDefs" : [{
           className : "dt-center",
-          "targets" : [1, 3, 4, 5, 6]
+          "targets" : [1, 3, 4, 5, 6, 7, 8]
         }]
       });
     },

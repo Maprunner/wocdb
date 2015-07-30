@@ -90,7 +90,8 @@
           "data" : function (row) {
             return row.get("name");
           },
-          "title" : "Name"
+          "title" : "Name",
+          "width": "20%"
         }, {
           "data" : function (row) {
             return row.get("country");

@@ -3,7 +3,7 @@
   'use strict';
   wocdb.Runner = Backbone.Model.extend({
     initialize : function () {
-      this.attributes.flag = wocdb.utils.getFlagFile(this.attributes.country);
+      this.attributes.flag = wocdb.countries.getFlagFile(this.attributes.country);
     }
   });
 }());

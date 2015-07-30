@@ -55,7 +55,8 @@
           "data" : function (row) {
             return row.get("name");
           },
-          "title" : "Name"
+          "title" : "Name",
+          "width": "20%"
         }, {
           "data" : function (row) {
             return row.get("country");
@@ -179,8 +180,10 @@
     },
 
     setCountry: function (country) {
+      var text;
       this.country = country.toLowerCase();
-      this.$("#dropdown-country").empty().html(this.country.toUpperCase() + '<span class="caret">');
+      text = this.country === "all" ? "All countries" : this.country.toUpperCase();
+      this.$("#dropdown-country").empty().html(text + '<span class="caret">');
     }
   });
 }());

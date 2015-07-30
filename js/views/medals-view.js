@@ -92,6 +92,7 @@
     },
 
     renderPersonCountryTable: function () {
+      var self = this;
       this.medalTable = $('#medal-table').empty().DataTable({
         data : this.collection.models,
         columns : [{
@@ -101,7 +102,8 @@
             }
             return wocdb.countries.getName(row.get("country"));
           },
-          "title" : "Name"
+          "title" : "Name",
+          "width": "20%"
         }, {
           "data" : function (row) {
             return row.get("country");
@@ -135,7 +137,7 @@
         }],
         "createdRow": function (row, data) {
           // add personid to newly created row
-          if (this.group === "person") {
+          if (self.group === "person") {
             $(row).attr('plainname', data.attributes.plainname);
           } else {
             $(row).attr('country', data.attributes.country.toLowerCase());
@@ -159,7 +161,8 @@
           "data" : function (row) {
             return row.get("name");
           },
-          "title" : "Name"
+          "title" : "Name",
+          "width": "20%"
         }, {
           "data" : function (row) {
             return row.get("country");

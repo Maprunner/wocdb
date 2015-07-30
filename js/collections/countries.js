@@ -25,8 +25,18 @@
         return model.attributes.country;
       }
       return "";
-    }
+    },
 
+    // passed in GBR, returns gb, to allow png flag file referencing
+    getFlagFile: function (abbrev) {
+      var model, prefix;
+      prefix = "xx";
+      model = this.findWhere({"abbr": abbrev});
+      if (model) {
+        prefix = model.attributes.code;
+      }
+      return wocdb.config.url + 'img/' + prefix + '.png';
+    }
   });
 
 }());

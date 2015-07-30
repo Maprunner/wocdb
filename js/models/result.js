@@ -4,7 +4,7 @@
   wocdb.Result = Backbone.Model.extend({
 
     initialize : function () {
-      this.attributes.flag = wocdb.utils.getFlagFile(this.attributes.country);
+      this.attributes.flag = wocdb.countries.getFlagFile(this.attributes.country);
       this.attributes.venue = wocdb.utils.getVenue(this.attributes.wocid);
       // keep numeric copy of position to allow sorting
       this.attributes.numericPosition = this.attributes.position;
