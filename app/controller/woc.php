@@ -6,7 +6,7 @@ public static function getStartPage($f3) {
   // main entry point to load complete application: after this it's just AJAX and JSON
   // set up various things that wll get written into the initial HTML
   // add <base > to HTML to avoid relative addressing problems in deep urls
-  $base = 'http://'.$_SERVER['SERVER_NAME'].'/wocdb/';
+  $base = 'https://'.$_SERVER['SERVER_NAME'].'/wocdb/';
   // horrid hack to get over domain set-up
   $base = str_replace("//maprunner", "//www.maprunner", $base);
   $f3->set('base', $base);
