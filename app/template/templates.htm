@@ -37,6 +37,7 @@
 <a id="<%= raceid %>" class="list-group-item" href="<%= type.toLowerCase() %>/<%= year %>/<%= gender.toLowerCase() %>/<%= race.toLowerCase() %>"><%= gender %> <%= race %></a>
 </script>
 <script type="text/template" id="race-header-tmpl">
+<%= (link === "") ? "": "<button type='button' id='map-link' class='btn btn-default'>Map</button>" %>
 <%= (wocid < 1000) ? 'WOC': 'JWOC' %> <%= year %> <%= gender %> <%= race %>
 </script>
 <script type="text/template" id="person-header-tmpl">

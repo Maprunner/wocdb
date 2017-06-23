@@ -13,6 +13,15 @@
       return "";
     },
 
+    getRaceLink: function (raceid) {
+      var model;
+      model = wocdb.races.findWhere({"raceid": parseInt(raceid, 10)});
+      if (model) {
+        return model.attributes.link;
+      }
+      return "";
+    },
+
     capitalise: function (text) {
       if (text) {
         return text[0].toUpperCase() + text.substring(1);

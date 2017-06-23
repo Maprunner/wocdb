@@ -1,4 +1,3 @@
-// Version 0.2.0 2015-07-30T20:35:06;
 /*
  * Maprunner  WOC Database
  * https://github.com/Maprunner/wocdb
@@ -135,6 +134,7 @@ var wocdb = (function (window, $) {
       });
       this.attributes.classes = this.attributes.classes.split(",");
       this.attributes.races = this.attributes.races.split(",");
+      this.attributes.links = this.attributes.links.split(",");
     }
   });
 }());
@@ -239,7 +239,7 @@ var wocdb = (function (window, $) {
       for (i = 0; i < this.models.length; i += 1) {
         attr = this.models[i].attributes;
         for (j = 0; j < attr.raceids.length; j += 1) {
-          race = {"year": attr.year, "type": attr.type, "wocid": attr.id, "gender": attr.classes[j], "raceid": attr.raceids[j], "race": attr.races[j]};
+          race = {"year": attr.year, "type": attr.type, "wocid": attr.id, "gender": attr.classes[j], "raceid": attr.raceids[j], "race": attr.races[j], "link": attr.links[j]};
           wocdb.races.add(race);
         }
       }
@@ -502,6 +502,15 @@ var wocdb = (function (window, $) {
       model = wocdb.wocs.findWhere({"id": parseInt(wocid, 10)});
       if (model) {
         return model.attributes.country;
+      }
+      return "";
+    },
+
+    getRaceLink: function (raceid) {
+      var model;
+      model = wocdb.races.findWhere({"raceid": parseInt(raceid, 10)});
+      if (model) {
+        return model.attributes.link;
       }
       return "";
     },
@@ -793,13 +802,16 @@ var wocdb = (function (window, $) {
 
     events : {
       'click #next-race-at-woc': 'showNextRace',
-      'click #prev-race-at-woc': 'showPreviousRace'
+      'click #prev-race-at-woc': 'showPreviousRace',
+      'click #map-link': 'showMap'
     },
 
     initialize : function () {
+      this.raceID = null;
       // update view once we have the data
       this.listenTo(this.collection, 'update', this.render);
       wocdb.dispatcher.on('startup:race', this.render, this);
+      wocdb.dispatcher.on('change:raceid', this.setRaceID, this);
     },
 
     template: _.template($('#race-header-tmpl').html()),
@@ -808,10 +820,19 @@ var wocdb = (function (window, $) {
       var model;
       if (this.collection.length) {
         model = this.collection.models[0].attributes;
+        model.link = wocdb.utils.getRaceLink(this.raceID);
         document.title = wocdb.utils.getType(model.wocid) + " " + model.year + " " + model.class + " " + model.race;
         $("#race-result-header-text").html(this.template(model));
       }
       return this;
+    },
+
+    setRaceID: function (id) {
+      this.raceID = id;
+    },
+
+    showMap: function () {
+      window.open(wocdb.utils.getRaceLink(this.raceID));
     },
 
     showNextRace: function () {

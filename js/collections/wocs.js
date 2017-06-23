@@ -66,7 +66,7 @@
       for (i = 0; i < this.models.length; i += 1) {
         attr = this.models[i].attributes;
         for (j = 0; j < attr.raceids.length; j += 1) {
-          race = {"year": attr.year, "type": attr.type, "wocid": attr.id, "gender": attr.classes[j], "raceid": attr.raceids[j], "race": attr.races[j]};
+          race = {"year": attr.year, "type": attr.type, "wocid": attr.id, "gender": attr.classes[j], "raceid": attr.raceids[j], "race": attr.races[j], "link": attr.links[j]};
           wocdb.races.add(race);
         }
       }

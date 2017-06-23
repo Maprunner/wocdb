@@ -9,6 +9,7 @@
       });
       this.attributes.classes = this.attributes.classes.split(",");
       this.attributes.races = this.attributes.races.split(",");
+      this.attributes.links = this.attributes.links.split(",");
     }
   });
 }());

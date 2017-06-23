@@ -27,20 +27,28 @@ private static function getWOCs($f3) {
   $wocTable->races = 1;
   $wocTable->raceids = 1;
   $wocTable->classes = 1;
+  $wocTable->links = 1;
   $data = $wocTable->find(array(), array('order'=>'year DESC, type DESC'));
   foreach ($data as &$record) {
     $races = $raceTable->find(array("wocid=?", $record->id), array('order'=>'class ASC, type ASC'));
     $raceids = array();
     $racetypes = array();
     $raceclasses = array();
+    $racelinks = array();
     foreach ($races as $race) {
       $raceids[] = $race->id;
       $racetypes[] = $race->type;
       $raceclasses[] = $race->class;
+      if ($race->link) {
+        $racelinks[] = $race->link;
+      } else {
+        $racelinks[] = "";
+      }
     }
     $record->races = implode(",", $racetypes);
     $record->classes = implode(",", $raceclasses);
     $record->raceids = implode(",", $raceids);
+    $record->links = implode(",", $racelinks);
     $record = $record->cast();
   }
   return json_encode($data);
