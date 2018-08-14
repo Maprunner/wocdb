@@ -1,11 +1,11 @@
 <?php
 class Import {
 
-// Called as https://localhost/import/<dir>/<wocid>
+// Called as https://localhost/wocdb/import/<dir>/<wocid>
 // Assumptions
 // 1: WOC already set up in woc table
-// 2: Files in XML format in c:\temp\<parameter>
-// 3: Files named e.g. Long-xxx where text before - is race type  
+// 2: Files in XML format in c:\temp\<dir>
+// 3: Files named e.g. Long-xxx where text before - is race type: Long, Middle, Sprint, SprintQual, SprintRelay, Relay
   
 private $db;
 private $wocid;
@@ -44,6 +44,7 @@ public static function importEvents($fff) {
   }
 
   $this->db->commit();
+  //echo $this->db->log();
 }
 
 private function importXML($file) {
