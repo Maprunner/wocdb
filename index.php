@@ -18,4 +18,3 @@ $db = new DB\SQL($f3->get('db.type').':'.$f3->get('db.file'));
 $f3->set("db.instance", $db);
 
 $f3->run();
-echo $db->log();

@@ -49,11 +49,11 @@ private static function getWOCs($f3) {
         $racelinks[] = "";
       }
     }
-    $record->races = implode(",", $racetypes);
-    $record->classes = implode(",", $raceclasses);
-    $record->raceids = implode(",", $raceids);
-    $record->links = implode(",", $racelinks);
     $record = $record->cast();
+    $record["races"] = implode(",", $racetypes);
+    $record["classes"] = implode(",", $raceclasses);
+    $record["raceids"] = implode(",", $raceids);
+    $record["links"] = implode(",", $racelinks);
   }
   return json_encode($data);
 }
