@@ -1,4 +1,4 @@
-// Version 0.3.0 2017-06-23T10:18:05;
+// Version 0.3.0 2019-07-11T16:37:11+0100;
 /*
  * Maprunner  WOC Database
  * https://github.com/Maprunner/wocdb

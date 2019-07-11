@@ -1,62 +1,62 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
   var jsFileList = ['js/wocdb.js', 'js/models/activewoc.js', 'js/models/woc.js', 'js/models/race.js', 'js/models/result.js', 'js/collections/wocs.js', 'js/collections/races.js',
-                    'js/collections/raceresult.js', 'js/views/active-woc-view.js', 'js/views/wocdb-view.js', 'js/views/result-view.js','js/utils.js','js/views/person-view.js',
-                    'js/views/race-result-view.js', 'js/views/race-header-view.js', 'js/views/race-menu-view.js', 'js/routers/router.js', 'js/collections/person.js', 'js/views/master-view.js',
-                    'js/models/runner.js', 'js/collections/runners.js', 'js/views/runners-view.js', 'js/models/best.js', 'js/collections/bestlist.js', 'js/views/best-view.js',
-                    'js/collections/countries.js', 'js/models/medal.js', 'js/collections/medals.js', 'js/views/medals-view.js'];
+    'js/collections/raceresult.js', 'js/views/active-woc-view.js', 'js/views/wocdb-view.js', 'js/views/result-view.js', 'js/utils.js', 'js/views/person-view.js',
+    'js/views/race-result-view.js', 'js/views/race-header-view.js', 'js/views/race-menu-view.js', 'js/routers/router.js', 'js/collections/person.js', 'js/views/master-view.js',
+    'js/models/runner.js', 'js/collections/runners.js', 'js/views/runners-view.js', 'js/models/best.js', 'js/collections/bestlist.js', 'js/views/best-view.js',
+    'js/collections/countries.js', 'js/models/medal.js', 'js/collections/medals.js', 'js/views/medals-view.js'];
 
   var cssFileList = ['css/wocdb.css'];
-  
+
   var jsConcatFile = 'js/wocdb.all.js';
-  
+
   var jsMinFile = 'js/wocdb.min.js';
 
   var relDir = 'ftpsite/';
-  
+
   // Project configuration.
   grunt.initConfig({
-    pkg : grunt.file.readJSON('package.json'),
+    pkg: grunt.file.readJSON('package.json'),
 
-    concat : {
-      js : {
-        src : jsFileList,
+    concat: {
+      js: {
+        src: jsFileList,
 
-        dest : jsConcatFile,
+        dest: jsConcatFile,
 
-        options : {
-          banner : '// Version <%= pkg.version %> <%= grunt.template.today("isoDateTime") %>;\n'
+        options: {
+          banner: '// Version <%= pkg.version %> <%= grunt.template.today("isoDateTime") %>;\n'
 
         }
       }
     },
 
-    jshint : {
-      options : {
-        curly : true,
-        plusplus : true,
+    jshint: {
+      options: {
+        curly: true,
+        plusplus: true,
         strict: true,
-        undef : true,
+        undef: true,
         unused: true,
-        trailing : true,
-        globals : {
-          $ : false,
+        trailing: true,
+        globals: {
+          $: false,
           Backbone: false,
           _: false,
-          window : false,
-          document : false,
-          alert : false,
-          FileReader : false,
-          console : false,
+          window: false,
+          document: false,
+          alert: false,
+          FileReader: false,
+          console: false,
         }
       },
-      all : {
-        src : jsFileList
+      all: {
+        src: jsFileList
       }
     },
-    
+
     csslint: {
       options: {
-      	// 2 means treat as an error
+        // 2 means treat as an error
         'import': 2,
         // false means ignore rule
         // TODO: rewrite CSS to allow these to be removed, but for now it works
@@ -68,18 +68,18 @@ module.exports = function(grunt) {
       src: cssFileList
     },
 
-    uglify : {
-      options : {
-        banner : '// Version <%= pkg.version %> <%= grunt.template.today("isoDateTime") %>;\n'
+    uglify: {
+      options: {
+        banner: '// Version <%= pkg.version %> <%= grunt.template.today("isoDateTime") %>;\n'
       },
-      build : {
-        src : jsConcatFile,
-        dest : jsMinFile
+      build: {
+        src: jsConcatFile,
+        dest: jsMinFile
       }
     },
 
-    bumpup : 'package.json',
-    
+    bumpup: 'package.json',
+
     jslint: {
       all: {
         src: jsFileList,
@@ -98,7 +98,7 @@ module.exports = function(grunt) {
       }
     },
 
-   clean: {
+    clean: {
       minified: [jsConcatFile, jsMinFile]
     }
 
@@ -112,7 +112,7 @@ module.exports = function(grunt) {
   // increment minor version number: do anything else by editting package.json by hand
   grunt.registerTask('bump', ['bumpup']);
 
-  grunt.registerTask('build', ['clean:minified', 'csslint', 'jslint:all', 'jshint:all', 'concat:js', 'uglify']);
-
+  // grunt.registerTask('build', ['clean:minified', 'csslint', 'jslint:all', 'jshint:all', 'concat:js', 'uglify']);
+  grunt.registerTask('build', ['clean:minified', 'concat:js', 'uglify']);
 
 };
