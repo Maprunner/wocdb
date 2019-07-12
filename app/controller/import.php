@@ -1,17 +1,19 @@
 <?php
 class Import {
 
-// Called as https://localhost/wocdb/import/<dir>/<wocid>
-// Assumptions
-// 1: WOC already set up in woc table
-// 2: Files in XML format in c:\temp\<dir>
-// 3: Files named e.g. Long-xxx where text before - is race type: Long, Middle, Sprint, SprintQual, SprintRelay, Relay
-  
 private $db;
 private $wocid;
 private $wocdata;
 private $type;
 private $xml;
+
+// Called as https://localhost/wocdb/import/<filetype>/<dir>/<wocid>
+// Assumptions
+// 1: WOC already set up in woc table
+// 2: Files in XML format in c:\temp\<dir>
+// 3: Files named e.g. Long-xxx where text before - is race type: Long, Middle, Sprint, SprintQual, SprintRelay, Relay
+// and xxx is anything
+// 4: <filetype> is "csv" or "xml"
 
 public static function importEvents($fff) {
   $this->db = $fff->get("db.instance");
@@ -33,18 +35,21 @@ public static function importEvents($fff) {
   foreach ($files as $file) {
 
     $this->type = substr($file, 0, strpos($file, "-"));
-    
-    if ($this->importXML($dir."/".$file)) {
-      
+
+    if ($fff->get('PARAMS.filetype') === "xml") {
+          
+      if ($this->importXML($dir."/".$file)) {   
       // <IOFVersion> only present for V2 XML files
       ($this->xml->IOFVersion) ? 
         $this->processIOFV2XML():
         $this->processIOFV3XML();
+      }
+    } else {
+      // import csv files
+      $this->importCSV($dir."/".$file);
     }
   }
-
   $this->db->commit();
-  //echo $this->db->log();
 }
 
 private function importXML($file) {
@@ -56,6 +61,85 @@ private function importXML($file) {
   }
   echo "Valid XML file: ".$file." for ".$this->type."<br>";
   return true;
+}
+
+private function importCSV($file) {
+  // extracts info from csv file created by hand
+  // mainly for relays...
+  // @ suppresses error report if file does not exist
+  if (($handle = @fopen($file, "r")) !== false) {
+    echo "Processing CSV file.<br>";
+    $results = new DB\SQL\Mapper($this->db, 'result');
+    $names = new DB\SQL\Mapper($this->db, 'name');
+    $races = new DB\SQL\Mapper($this->db, 'race');
+    // expected format
+    $_POSITION = 0;
+    $_NAME = 1;
+    // three letter code
+    $_COUNTRY = 2;
+    $_TIME = 3;
+    // Men, Women or Mixed
+    $_CLASS = 4;
+    $classname = "";
+    while (($data = fgetcsv($handle, 0, ",")) !== false) {
+      if ($classname !== $data[$_CLASS]) {
+        $classname = $data[$_CLASS];
+        echo "Adding class: ".$classname."<br>";
+        // create new race record
+        $races->reset();
+        // id is set automatically when race is saved
+        $races->wocid = $this->wocid;
+        $races->year = $this->wocdata->year;
+        $races->class = $classname;
+        $races->type = $this->type;
+        $races->winner = $data[$_NAME];
+        $races->country = $data[$_COUNTRY];
+        $races->time = $data[$_TIME];
+        $races->timeseconds = 0;
+        $races->save();
+      }
+      $name = $data[$_NAME];
+      $names->load(array('name=?',$name));
+      if ($names->loaded() == 0) {
+        // add a new name
+        $names->reset();
+        $names->name = $name;
+        $names->nameid = 0;
+        $names->personid = 0;
+        $names->plainname = $this->getPlainName($name);
+        $names->save();
+        // id now allocated so copy to other fields
+        $names->nameid = $names->id;
+        $names->personid = $names->id;
+        $names->save();
+      }
+      $results->reset();
+      $results->position = $data[$_POSITION];
+      $results->name = $name;
+      $results->country = $data[$_COUNTRY];
+      $results->time = $data[$_TIME];
+      $results->seconds = 0;
+      $results->secsdown = 0;
+      $results->percentdown = 0.0;
+      $results->class = $classname;
+      $results->race = $this->type;
+      $results->year = $this->wocdata->year;
+      $results->raceid = $races->id;
+      $results->wocid = $this->wocid;
+      $results->final = $this->getFinalType();
+      $results->nameid = $names->nameid;
+      $results->personid = $names->personid;
+      if (($results->final > 0) && ($results->final < 4)) {
+        $results->points = max(51 - $pos, 0);
+      } else {
+        $results->points = 0;
+      }
+      $results->save();
+    }
+    fclose($handle);
+  } else {
+    echo "Cannot read file: ".$file."<br>";
+  }
 }
 
 private function processIOFV3XML() {
