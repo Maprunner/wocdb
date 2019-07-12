@@ -163,7 +163,7 @@ private function getMedalData($f3, $action) {
   if ($group == "country") {
   // wow this is fun:  need to avoid multiple counting relays so you select one of each relay result UNION all individual results
   // and use that to extract results
-    $sql = "SELECT country,SUM(CASE WHEN position=1 THEN 1 ELSE 0 END) AS G,";
+    $sql = "SELECT country, MAX(w.year) AS toYear, MIN(w.year) as fromYear, SUM(CASE WHEN position=1 THEN 1 ELSE 0 END) AS G,";
     $sql .= "SUM(CASE WHEN position=2 THEN 1 ELSE 0 END) AS S, SUM(CASE WHEN position=3 THEN 1 ELSE 0 END) AS B,";
     $sql .= "SUM(CASE WHEN (position=1) OR (position=2) OR (position = 3) THEN 1 ELSE 0 END) AS total FROM result as w ";
     $sql .= "JOIN (SELECT id FROM result AS a WHERE position=1 AND (final=4 OR final=5) GROUP BY raceid ";
@@ -176,7 +176,8 @@ private function getMedalData($f3, $action) {
     );
   } else if ($group == "person") {
     // returns a list of all individual medal totals
-    $sql = "SELECT r.personid as personid, r.name as name, name.plainname as plainname, country, SUM(CASE WHEN position = 1 THEN 1 ELSE 0 END) AS G,";
+    $sql = "SELECT r.personid as personid, r.name as name, name.plainname as plainname, country, MAX(r.year) AS toYear, MIN(r.year) as fromYear, ";
+    $sql .= "SUM(CASE WHEN position = 1 THEN 1 ELSE 0 END) AS G,";
     $sql .= "SUM(CASE WHEN position = 2 THEN 1 ELSE 0 END) AS S, SUM(CASE WHEN position = 3 THEN 1 ELSE 0 END) AS B, ";
     $sql .= "SUM(CASE WHEN position<4 THEN 1 ELSE 0 END) AS total FROM result as r JOIN name ON name.nameid=r.nameid WHERE ";
     $sql .= $typefilter.$racefilter.$classfilter;
@@ -185,7 +186,8 @@ private function getMedalData($f3, $action) {
     );
   } else {
     // returns a list of all medallists for a given country
-    $sql = "SELECT r.id as id, r.name as name, plainname, country, time, position, year, wocid, race, raceid, class, final from result r JOIN name n ON (n.nameid=r.nameid) WHERE ".$typefilter.$racefilter.$classfilter." AND (position < 4) AND ";
+    $sql = "SELECT r.id as id, r.name as name, plainname, country, time, position, year, wocid, race, raceid, class, final from result r ";
+    $sql.= "JOIN name n ON (n.nameid=r.nameid) WHERE ".$typefilter.$racefilter.$classfilter." AND (position < 4) AND ";
     $sql .= "(country='".strtoupper(substr($group, 0, 3))."') ORDER BY position ASC, year DESC, raceid ASC";
     $params = array(
     );

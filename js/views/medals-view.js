@@ -3,7 +3,7 @@
   'use strict';
   /*jslint unparam: true */
   wocdb.MedalsView = Backbone.View.extend({
-    el : '#medal-page',
+    el: '#medal-page',
 
     events: {
       'click #medal-table tbody tr': 'selectFromTable',
@@ -14,7 +14,7 @@
       'click #medal-submit': 'getNewResults'
     },
 
-    initialize : function () {
+    initialize: function () {
       var dropdown;
       this.listenTo(this.collection, 'sync', this.render);
       this.listenTo(this.collection, 'reset', this.render);
@@ -41,7 +41,7 @@
       }
     },
 
-    render : function () {
+    render: function () {
       this.initializeFromURL();
       if (this.medalTable) {
         this.medalTable.destroy();
@@ -56,7 +56,7 @@
 
     renderHeader: function () {
       var text;
-      if ((this.group === "person") ||  (this.group === "country")) {
+      if ((this.group === "person") || (this.group === "country")) {
         text = "Medal table by person for" + this.getHeaderText();
       } else {
         text = "Medallists for " + wocdb.countries.getName(this.group) + this.getHeaderText() + this.getMedalCount();
@@ -94,46 +94,56 @@
     renderPersonCountryTable: function () {
       var self = this;
       this.medalTable = $('#medal-table').empty().DataTable({
-        data : this.collection.models,
-        columns : [{
-          "data" : function (row) {
+        data: this.collection.models,
+        columns: [{
+          "data": function (row) {
             if (row.get("name")) {
               return row.get("name");
             }
             return wocdb.countries.getName(row.get("country"));
           },
-          "title" : "Name",
+          "title": "Name",
           "width": "20%"
         }, {
-          "data" : function (row) {
+          "data": function (row) {
             return row.get("country");
           },
-          "title" : "Country"
+          "title": "Country"
         }, {
-          "data" : function (row) {
+          "data": function (row) {
             return "<img src='" + row.get("flag") + "'>";
           },
-          "title" : ""
+          "title": ""
         }, {
-          "data" : function (row) {
+          "data": function (row) {
             return row.get("G");
           },
-          "title" : "Gold"
+          "title": "Gold"
         }, {
-          "data" : function (row) {
+          "data": function (row) {
             return row.get("S");
           },
-          "title" : "Silver"
+          "title": "Silver"
         }, {
-          "data" : function (row) {
+          "data": function (row) {
             return row.get("B");
           },
-          "title" : "Bronze"
+          "title": "Bronze"
         }, {
-          "data" : function (row) {
+          "data": function (row) {
             return row.get("total");
           },
-          "title" : "Total"
+          "title": "Total"
+        }, {
+          "data": function (row) {
+            return row.get("fromYear");
+          },
+          "title": "From"
+        }, {
+          "data": function (row) {
+            return row.get("toYear");
+          },
+          "title": "To"
         }],
         "createdRow": function (row, data) {
           // add personid to newly created row
@@ -143,41 +153,41 @@
             $(row).attr('country', data.attributes.country.toLowerCase());
           }
         },
-        "lengthMenu" : [[20, 50, 100, -1], [20, 50, 100, "All"]],
-        "order" : [[6, 'desc'], [3, 'desc'], [4, 'desc'], [5, 'desc']],
-        'autoWidth' : true,
-        'searching' : false,
-        "columnDefs" : [{
-          className : "dt-center",
-          "targets" : [1, 2, 3, 4, 5, 6]
+        "lengthMenu": [[20, 50, 100, -1], [20, 50, 100, "All"]],
+        "order": [[6, 'desc'], [3, 'desc'], [4, 'desc'], [5, 'desc']],
+        'autoWidth': true,
+        'searching': false,
+        "columnDefs": [{
+          className: "dt-center",
+          "targets": [1, 2, 3, 4, 5, 6, 7, 8]
         }]
       });
     },
 
     renderMedallistTable: function () {
       this.medalTable = $('#medal-table').empty().DataTable({
-        data : this.collection.models,
-        columns : [{
-          "data" : function (row) {
+        data: this.collection.models,
+        columns: [{
+          "data": function (row) {
             return row.get("name");
           },
-          "title" : "Name",
+          "title": "Name",
           "width": "20%"
         }, {
-          "data" : function (row) {
+          "data": function (row) {
             return row.get("country");
           },
-          "title" : "Country"
+          "title": "Country"
         }, {
-          "data" : function (row) {
+          "data": function (row) {
             return "<img src='" + row.get("flag") + "'>";
           },
-          "title" : ""
+          "title": ""
         }, {
-          "data" : function (row) {
+          "data": function (row) {
             return row.get("numericPosition");
           },
-          "title" : "Position",
+          "title": "Position",
           "render": function (data, type) {
             if (type === 'display') {
               if (data < 4) {
@@ -190,27 +200,27 @@
             return data;
           }
         }, {
-          "data" : function (row) {
+          "data": function (row) {
             return row.get("year");
           },
-          "title" : "Year"
+          "title": "Year"
         }, {
-          "data" : function (row) {
+          "data": function (row) {
             return wocdb.utils.getType(row.get("wocid"));
           },
-          "title" : "Event"
+          "title": "Event"
         }, {
-          "data" : function (row) {
+          "data": function (row) {
             return wocdb.utils.getVenue(row.get("wocid"));
           },
-          "title" : "Venue"
+          "title": "Venue"
         }, {
-          "data" : function (row) {
+          "data": function (row) {
             return row.get("race");
           },
-          "title" : "Race"
+          "title": "Race"
         }, {
-          "data" : {
+          "data": {
             "_": function (row) {
               return row.get("time");
             },
@@ -218,26 +228,26 @@
               return parseInt(row.get("seconds"), 10);
             }
           },
-          "title" : "Time",
+          "title": "Time",
           "type": "num"
         }],
         "createdRow": function (row, data) {
           $(row).attr('plainname', data.attributes.plainname);
         },
-        "lengthMenu" : [[20, 50, 100, -1], [20, 50, 100, "All"]],
-        "order" : [[3, 'asc'], [4, 'desc'], [6, 'asc']],
-        'autoWidth' : true,
-        'searching' : false,
-        "columnDefs" : [{
-          className : "dt-center",
-          "targets" : [1, 2, 3, 4, 5, 7, 8]
+        "lengthMenu": [[20, 50, 100, -1], [20, 50, 100, "All"]],
+        "order": [[3, 'asc'], [4, 'desc'], [6, 'asc']],
+        'autoWidth': true,
+        'searching': false,
+        "columnDefs": [{
+          className: "dt-center",
+          "targets": [1, 2, 3, 4, 5, 7, 8]
         }]
       });
     },
 
     // submit button
     getNewResults: function () {
-      wocdb.dispatcher.trigger("change:medals", {group: this.group, type: this.type, gender: this.gender, race: this.race});
+      wocdb.dispatcher.trigger("change:medals", { group: this.group, type: this.type, gender: this.gender, race: this.race });
     },
 
     // click on row in table loads selected person
@@ -246,7 +256,7 @@
       var name;
       if (this.group === "country") {
         this.group = $(evt.currentTarget).attr('country');
-        wocdb.dispatcher.trigger("change:medals", {group: this.group, type: this.type, gender: this.gender, race: this.race});
+        wocdb.dispatcher.trigger("change:medals", { group: this.group, type: this.type, gender: this.gender, race: this.race });
       } else {
         wocdb.dispatcher.trigger("display:page", "person-page");
         name = $(evt.currentTarget).attr('plainname');
