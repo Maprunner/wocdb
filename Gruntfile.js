@@ -63,7 +63,9 @@ module.exports = function (grunt) {
         'ids': false,
         'box-model': false,
         'duplicate-background-images': false,
-        'outline-none': false
+        'outline-none': false,
+        'order-alphabetical': false,
+        'adjoining-classes': false
       },
       src: cssFileList
     },
@@ -80,24 +82,6 @@ module.exports = function (grunt) {
 
     bumpup: 'package.json',
 
-    jslint: {
-      all: {
-        src: jsFileList,
-        exclude: [],
-        directives: {
-          indent: 2,
-          // allow browser variables (window...)
-          browser: true,
-          // allow leading _
-          nomen: true,
-          predef: ['$', 'FileReader', 'Backbone', '_']
-        },
-        options: {
-          failOnError: false
-        }
-      }
-    },
-
     clean: {
       minified: [jsConcatFile, jsMinFile]
     }
@@ -112,7 +96,6 @@ module.exports = function (grunt) {
   // increment minor version number: do anything else by editting package.json by hand
   grunt.registerTask('bump', ['bumpup']);
 
-  // grunt.registerTask('build', ['clean:minified', 'csslint', 'jslint:all', 'jshint:all', 'concat:js', 'uglify']);
-  grunt.registerTask('build', ['clean:minified', 'concat:js', 'uglify']);
-
+  // grunt.registerTask('build', ['clean:minified', 'jshint:all', 'concat:js', 'uglify']);
+  grunt.registerTask('build', ['clean:minified', 'csslint', 'jshint:all', 'concat:js', 'uglify']);
 };
