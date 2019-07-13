@@ -61,7 +61,8 @@ private static function getWOCs($f3) {
 private static function getCountries($f3) {
   $db = $f3->get("db.instance");
   $resultTable = new DB\SQL\Mapper($db,'country');
-  $data=$db->exec('SELECT * FROM country ORDER BY abbr ASC');
+  // exclude countries with no results
+  $data=$db->exec('SELECT country, code, abbr FROM (select distinct country as d from result) as r JOIN country as c ON c.abbr = r.d ORDER BY abbr ASC');
   return json_encode($data);
 }
 
