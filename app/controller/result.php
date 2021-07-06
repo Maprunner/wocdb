@@ -1,7 +1,12 @@
 <?php
 
 class Result{
-  
+
+public function import($f3) {
+  $imp = new Import($f3);
+  $imp->importEvents($f3);
+}
+
 public function getRunnersByCountry($f3) {
   $runnerdata = $this->getRunners($f3, 'echo');
 }

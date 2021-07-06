@@ -15,10 +15,10 @@ private $xml;
 // and xxx is anything
 // 4: <filetype> is "csv" or "xml"
 
-public static function importEvents($fff) {
+public function importEvents($fff) {
   $this->db = $fff->get("db.instance");
   
-  $dir = "C:/temp/".$fff->get('PARAMS.dir');
+  $dir = "C:/tmp/".$fff->get('PARAMS.dir');
   $this->wocid = $fff->get('PARAMS.wocid');
   echo "Importing results for WOCID ".$this->wocid." from ".$dir."<br>";
 
@@ -49,7 +49,7 @@ public static function importEvents($fff) {
       $this->importCSV($dir."/".$file);
     }
   }
-  $this->db->commit();
+  //$this->db->commit();
 }
 
 private function importXML($file) {
@@ -309,7 +309,15 @@ private function processIOFV2XML() {
       }
 
       $fullname = $personresult->Person->PersonName;
-      $name = trim($fullname->Given)." ".trim($fullname->Family);
+      $name = trim(trim($fullname->Given)." ".trim($fullname->Family));
+      // WOC 2021 hack for <Given sequence="1">Leake Alice</Given>
+      // move everything after last space to front
+      $pos = strrpos($name, chr(32), 0);
+      if ($pos !== false) {
+        $end = substr($name, $pos + 1);
+        $start = substr($name, 0, $pos);
+        $name = $end.' '.$start;
+      }
       
       $names->load(array('name=?',$name));
       if ($names->loaded() == 0) {
@@ -377,7 +385,12 @@ private function processIOFV2XML() {
       $this->type === 'Relay' ? $results->secsdown = 0: $results->secsdown = $secsbehind;
       $this->type === 'Relay' ? $results->percentdown = 0: $results->percentdown = $percentbehind;
       $results->class = $correctedclass;
-      $results->race = $this->type;
+      //$results->race = $this->type;
+      if ($this->type == 'SprintQual') {
+        $results->race = $this->type.'-'.$classname;
+      } else {
+        $results->race = $this->type;
+      }
       $results->year = $this->wocdata->year;
       $results->raceid = $races->id;
       $results->wocid = $this->wocid;
@@ -389,6 +402,7 @@ private function processIOFV2XML() {
       } else {
         $results->points = 0;
       }
+      echo var_dump($results);
       $results->save();
       
       if ($firstrecord) {
