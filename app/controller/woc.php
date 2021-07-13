@@ -7,7 +7,7 @@ public static function getStartPage($f3) {
   // set up various things that wll get written into the initial HTML
   // add <base > to HTML to avoid relative addressing problems in deep urls
   if (strpos($_SERVER['SERVER_NAME'], 'localhost') !== FALSE) {
-    $base = 'http://'.$_SERVER['SERVER_NAME'].'/wocdb/';
+    $base = 'https://'.$_SERVER['SERVER_NAME'].'/wocdb/';
   } else {
     $base = 'https://'.$_SERVER['SERVER_NAME'].'/wocdb/';
   }
