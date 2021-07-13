@@ -15,10 +15,10 @@ private $xml;
 // and xxx is anything
 // 4: <filetype> is "csv" or "xml"
 
-public static function importEvents($fff) {
+public function importEvents($fff) {
   $this->db = $fff->get("db.instance");
   
-  $dir = "C:/temp/".$fff->get('PARAMS.dir');
+  $dir = "C:/tmp/".$fff->get('PARAMS.dir');
   $this->wocid = $fff->get('PARAMS.wocid');
   echo "Importing results for WOCID ".$this->wocid." from ".$dir."<br>";
 
@@ -192,7 +192,7 @@ private function processIOFV3XML() {
         $names->personid = 0;
         $names->plainname = $this->getPlainName($name);
         $names->save();
-        // id now alloocated so copy to other fields
+        // id now allocated so copy to other fields
         $names->nameid = $names->id;
         $names->personid = $names->id;
         $names->save();
@@ -270,6 +270,74 @@ private function processIOFV3XML() {
   
 private function processIOFV2XML() {
   echo "Processing IOF V2 XML file.<br>";
+  $relay2019 = array(
+    "WSWE" => 1,
+    "WSUI" => 2,
+    "WRUS" => 3,
+    "WNOR" => 4,
+    "WCZE" => 5,
+    "WFIN" => 6,
+    "WEST" => 7,
+    "WDEN" => 8,
+    "WGBR" => 9,
+    "WAUT" => 10,
+    "WLTU" => 11,
+    "WGER" => 12,
+    "WLAT" => 13,
+    "WBUL" => 14,
+    "WFRA" => 15,
+    "WPOL" => 16,
+    "WUKR" => 17,
+    "WCAN" => 18,
+    "WAUS" => 19,
+    "WIRL" => 20,
+    "WNZL" => 21,
+    "WUSA" => 22,
+    "WHUN" => 23,
+    "WJPN" => 24,
+    "WITA" => 25,
+    "WCHN" => 26,
+    "WBRA" => 27,
+    "WHKG" => 28,
+    "WESP" => 999,
+    "WKOR" => 999,
+    "MSWE" => 1,
+    "MFIN" => 2,
+    "MFRA" => 3,
+    "MCZE" => 4,
+    "MNOR" => 5,
+    "MSUI" => 6,
+    "MAUT" => 7,
+    "MUKR" => 8,
+    "MLAT" => 9,
+    "MGER" => 10,
+    "MBLR" => 11,
+    "MRUS" => 12,
+    "MDEN" => 13,
+    "MLTU" => 14,
+    "MAUS" => 15,
+    "MPOL" => 16,
+    "MGBR" => 17,
+    "MEST" => 18,
+    "MNZL" => 19,
+    "MUSA" => 20,
+    "MESP" => 21,
+    "MIRL" => 22,
+    "MBUL" => 23,
+    "MITA" => 24,
+    "MSVK" => 25,
+    "MHUN" => 26,
+    "MISR" => 27,
+    "MJPN" => 28,
+    "MCAN" => 29,
+    "MBEL" => 30,
+    "MCHN" => 31,
+    "MMDA" => 32,
+    "MTUR" => 33,
+    "MBRA" => 34,
+    "MHKG" => 35,
+    "MKOR" => 999
+    );
   $results = new DB\SQL\Mapper($this->db, 'result');
   $names = new DB\SQL\Mapper($this->db, 'name');
   $races = new DB\SQL\Mapper($this->db, 'race');
@@ -287,7 +355,7 @@ private function processIOFV2XML() {
     $races->reset();
     // id is set automatically when race is saved
     $races->wocid = $this->wocid;
-    if ($this->type == 'SprintQual') {
+    if (($this->type == 'SprintQual') || ($this->type == 'MiddleQual')) {
       $races->type = $this->type.'-'.$classname;
     } else {
       $races->type = $this->type;
@@ -295,7 +363,7 @@ private function processIOFV2XML() {
     $races->year = $this->wocdata->year;
     $races->class = $correctedclass;
     $races->save();
-
+    echo "Added new race record".$races->id."<br>";
     $firstrecord = true;
     $winnerseconds = 0;
 
@@ -309,7 +377,15 @@ private function processIOFV2XML() {
       }
 
       $fullname = $personresult->Person->PersonName;
-      $name = trim($fullname->Given)." ".trim($fullname->Family);
+      $name = trim(trim($fullname->Given)." ".trim($fullname->Family));
+      // WOC 2021 hack for <Given sequence="1">Leake Alice</Given>
+      // move everything after last space to front
+      // $pos = strrpos($name, chr(32), 0);
+      // if ($pos !== false) {
+      //   $end = substr($name, $pos + 1);
+      //   $start = substr($name, 0, $pos);
+      //   $name = $end.' '.$start;
+      // }
       
       $names->load(array('name=?',$name));
       if ($names->loaded() == 0) {
@@ -320,7 +396,7 @@ private function processIOFV2XML() {
         $names->personid = 0;
         $names->plainname = $this->getPlainName($name);
         $names->save();
-        // id now alloocated so copy to other fields
+        // id now allocated so copy to other fields
         $names->nameid = $names->id;
         $names->personid = $names->id;
         $names->save();
@@ -328,8 +404,8 @@ private function processIOFV2XML() {
 
       if ($personresult->Club) {
         $country = $personresult->Club->Name;
-        // trim ' 1' from relay results
-        $country = str_replace(' 1', '', $country);
+        // trim '-1' from relay results
+        $country = str_replace('-1', '', $country);
         // change Great Britain to GBR
         if (strlen($country) > 3) {
           $country = $this->getCountryCode($country);
@@ -340,11 +416,17 @@ private function processIOFV2XML() {
       
       $time = $personresult->Result->Time->Clock;
       $pos = $personresult->Result->ResultPosition;
+      // WOC 2019 relay hack
+      if ($this->type == 'Relay') {
+        $pos = $relay2019[substr($classname, 0, 1).$country];
+        //echo $pos."<br>";
+      }
+
       if ($status != 'OK') {
         $pos = 999;
         $time = $status;
       }
-      
+
       // convert HH:MM:SS to seconds
       if ($pos < 999) {
         $secs = substr($time, 0, 2) * 3600;
@@ -377,7 +459,12 @@ private function processIOFV2XML() {
       $this->type === 'Relay' ? $results->secsdown = 0: $results->secsdown = $secsbehind;
       $this->type === 'Relay' ? $results->percentdown = 0: $results->percentdown = $percentbehind;
       $results->class = $correctedclass;
-      $results->race = $this->type;
+      //$results->race = $this->type;
+      if (($this->type == 'SprintQual') || ($this->type == 'MiddleQual')) {
+        $results->race = $this->type.'-'.$classname;
+      } else {
+        $results->race = $this->type;
+      }
       $results->year = $this->wocdata->year;
       $results->raceid = $races->id;
       $results->wocid = $this->wocid;
