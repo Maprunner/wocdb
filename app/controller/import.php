@@ -10,7 +10,7 @@ private $xml;
 // Called as https://localhost/wocdb/import/<filetype>/<dir>/<wocid>
 // Assumptions
 // 1: WOC already set up in woc table
-// 2: Files in XML format in c:\temp\<dir>
+// 2: Files in XML format in c:\tmp\<dir>
 // 3: Files named e.g. Long-xxx where text before - is race type: Long, Middle, Sprint, SprintQual, SprintRelay, Relay
 // and xxx is anything
 // 4: <filetype> is "csv" or "xml"
@@ -270,74 +270,6 @@ private function processIOFV3XML() {
   
 private function processIOFV2XML() {
   echo "Processing IOF V2 XML file.<br>";
-  $relay2019 = array(
-    "WSWE" => 1,
-    "WSUI" => 2,
-    "WRUS" => 3,
-    "WNOR" => 4,
-    "WCZE" => 5,
-    "WFIN" => 6,
-    "WEST" => 7,
-    "WDEN" => 8,
-    "WGBR" => 9,
-    "WAUT" => 10,
-    "WLTU" => 11,
-    "WGER" => 12,
-    "WLAT" => 13,
-    "WBUL" => 14,
-    "WFRA" => 15,
-    "WPOL" => 16,
-    "WUKR" => 17,
-    "WCAN" => 18,
-    "WAUS" => 19,
-    "WIRL" => 20,
-    "WNZL" => 21,
-    "WUSA" => 22,
-    "WHUN" => 23,
-    "WJPN" => 24,
-    "WITA" => 25,
-    "WCHN" => 26,
-    "WBRA" => 27,
-    "WHKG" => 28,
-    "WESP" => 999,
-    "WKOR" => 999,
-    "MSWE" => 1,
-    "MFIN" => 2,
-    "MFRA" => 3,
-    "MCZE" => 4,
-    "MNOR" => 5,
-    "MSUI" => 6,
-    "MAUT" => 7,
-    "MUKR" => 8,
-    "MLAT" => 9,
-    "MGER" => 10,
-    "MBLR" => 11,
-    "MRUS" => 12,
-    "MDEN" => 13,
-    "MLTU" => 14,
-    "MAUS" => 15,
-    "MPOL" => 16,
-    "MGBR" => 17,
-    "MEST" => 18,
-    "MNZL" => 19,
-    "MUSA" => 20,
-    "MESP" => 21,
-    "MIRL" => 22,
-    "MBUL" => 23,
-    "MITA" => 24,
-    "MSVK" => 25,
-    "MHUN" => 26,
-    "MISR" => 27,
-    "MJPN" => 28,
-    "MCAN" => 29,
-    "MBEL" => 30,
-    "MCHN" => 31,
-    "MMDA" => 32,
-    "MTUR" => 33,
-    "MBRA" => 34,
-    "MHKG" => 35,
-    "MKOR" => 999
-    );
   $results = new DB\SQL\Mapper($this->db, 'result');
   $names = new DB\SQL\Mapper($this->db, 'name');
   $races = new DB\SQL\Mapper($this->db, 'race');
@@ -363,7 +295,7 @@ private function processIOFV2XML() {
     $races->year = $this->wocdata->year;
     $races->class = $correctedclass;
     $races->save();
-    echo "Added new race record".$races->id."<br>";
+    echo "Added new race record ".$races->id.": ".$correctedclass."<br>";
     $firstrecord = true;
     $winnerseconds = 0;
 
@@ -416,12 +348,6 @@ private function processIOFV2XML() {
       
       $time = $personresult->Result->Time->Clock;
       $pos = $personresult->Result->ResultPosition;
-      // WOC 2019 relay hack
-      if ($this->type == 'Relay') {
-        $pos = $relay2019[substr($classname, 0, 1).$country];
-        //echo $pos."<br>";
-      }
-
       if ($status != 'OK') {
         $pos = 999;
         $time = $status;
@@ -488,6 +414,8 @@ private function processIOFV2XML() {
         }
         $firstrecord = false;
       }
+
+      echo "Added new result ".$name.": ".$country.": ".$pos.": ".$time."<br>";
     }
     // update race record
     $races->save();
