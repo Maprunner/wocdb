@@ -72,6 +72,9 @@ private function getBest($f3, $action) {
     case 'sprintrelay':
         $racefilter=5;
         break;
+    case 'kosprint':
+        $racefilter=6;
+        break;
     default:
         $racefilter=1;
         break;
@@ -159,6 +162,9 @@ private function getMedalData($f3, $action) {
         break;
     case 'sprintrelay':
         $racefilter= " AND final=5 ";
+        break;
+    case 'kosprint':
+        $racefilter= " AND final=6 ";
         break;
     default:
         $racefilter= " AND final>0 ";

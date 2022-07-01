@@ -70,7 +70,7 @@
     getRacesDropdown: function (startHTML) {
       var dropdown;
       dropdown = _.reduce([{text: "Long", value: "long"}, {text: "Middle", value: "middle"}, {text: "Sprint", value: "sprint"}, {text: "Relay", value: "relay"},
-                    {text: "Sprint Relay", value: "sprintrelay"}], this.createRaceDropdownHTML, startHTML);
+                    {text: "Sprint Relay", value: "sprintrelay"}, {text: "KOSprint", value: "kosprint"}], this.createRaceDropdownHTML, startHTML);
       return dropdown;
     },
 

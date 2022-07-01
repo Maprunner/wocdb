@@ -11,7 +11,7 @@ private $xml;
 // Assumptions
 // 1: WOC already set up in woc table
 // 2: Files in XML format in c:\tmp\<dir>
-// 3: Files named e.g. Long-xxx where text before - is race type: Long, Middle, Sprint, SprintQual, SprintRelay, Relay
+// 3: Files named e.g. Long-xxx where text before - is race type: Long, Middle, Sprint, SprintQual, SprintRelay, Relay, KOSprintQual, KOSprint
 // and xxx is anything
 // 4: <filetype> is "csv" or "xml"
 
@@ -75,7 +75,6 @@ private function importCSV($file) {
     // expected format
     $_POSITION = 0;
     $_NAME = 1;
-    // three letter code
     $_COUNTRY = 2;
     $_TIME = 3;
     // Men, Women or Mixed
@@ -93,7 +92,7 @@ private function importCSV($file) {
         $races->class = $classname;
         $races->type = $this->type;
         $races->winner = $data[$_NAME];
-        $races->country = $data[$_COUNTRY];
+        $races->country = $this->getCountryCode($data[$_COUNTRY]);
         $races->time = $data[$_TIME];
         $races->timeseconds = 0;
         $races->save();
@@ -114,9 +113,10 @@ private function importCSV($file) {
         $names->save();
       }
       $results->reset();
+      $results->position = 1;
       $results->position = $data[$_POSITION];
       $results->name = $name;
-      $results->country = $data[$_COUNTRY];
+      $results->country = $this->getCountryCode($data[$_COUNTRY]);
       $results->time = $data[$_TIME];
       $results->seconds = 0;
       $results->secsdown = 0;
@@ -135,6 +135,7 @@ private function importCSV($file) {
         $results->points = 0;
       }
       $results->save();
+      echo "Added new result ".$results->name.": ".$results->country.": ".$results->position.": ".$results->time."<br>";
     }
     fclose($handle);
   } else {
@@ -161,7 +162,7 @@ private function processIOFV3XML() {
     $races->reset();
     // id is set automatically when race is saved
     $races->wocid = $this->wocid;
-    if ($this->type == 'SprintQual') {
+    if (($this->type == 'SprintQual') || ($this->type == 'KOSprintQual')) {
       $races->type = $this->type.'-'.$classname;
     } else {
       $races->type = $this->type;
@@ -295,7 +296,7 @@ private function processIOFV2XML() {
     $races->year = $this->wocdata->year;
     $races->class = $correctedclass;
     $races->save();
-    echo "Added new race record ".$races->id.": ".$correctedclass."<br>";
+    echo "Added new race record ".$races->id.": ".$correctedclass." :".$races->type."<br>";
     $firstrecord = true;
     $winnerseconds = 0;
 
@@ -491,6 +492,8 @@ private function getFinalType() {
       return 4;
     case "SprintRelay":
       return 5;
+    case "KOSprint":
+      return 6;
     default:
       return 0;
   }
