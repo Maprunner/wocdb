@@ -1,4 +1,4 @@
-// Version 0.4.0 2021-05-10T20:14:52+0100;
+// Version 0.5.0 2022-07-01T12:20:07+0100;
 /*
  * Maprunner  WOC Database
  * https://github.com/Maprunner/wocdb
@@ -564,7 +564,7 @@ var wocdb = (function (window, $) {
     getRacesDropdown: function (startHTML) {
       var dropdown;
       dropdown = _.reduce([{text: "Long", value: "long"}, {text: "Middle", value: "middle"}, {text: "Sprint", value: "sprint"}, {text: "Relay", value: "relay"},
-                    {text: "Sprint Relay", value: "sprintrelay"}], this.createRaceDropdownHTML, startHTML);
+                    {text: "Sprint Relay", value: "sprintrelay"}, {text: "KOSprint", value: "kosprint"}], this.createRaceDropdownHTML, startHTML);
       return dropdown;
     },
 
