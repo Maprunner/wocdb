@@ -1,15 +1,15 @@
 {
   "name": "wocdb",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Maprunner WOC Database",
   "repository": "https://github.com/Maprunner/wocdb",
   "devDependencies": {
-    "grunt": "^1.4.1",
-    "grunt-contrib-clean": "^2.0.0",
-    "grunt-contrib-concat": "^1.0.1",
+    "grunt": "^1.5.3",
+    "grunt-contrib-clean": "^2.0.1",
+    "grunt-contrib-concat": "^2.1.0",
     "grunt-contrib-csslint": "^2.0.0",
     "grunt-contrib-jshint": "^3.0.0",
-    "grunt-contrib-uglify": "^5.0.0",
+    "grunt-contrib-uglify": "^5.2.2",
     "grunt-jslint": "^1.2.0",
     "load-grunt-tasks": "^5.1.0"
   },
