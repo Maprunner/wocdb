@@ -44,6 +44,6 @@
 Results for <%= name %>
 </script>
 <script type="text/template" id="race-result-tmpl">
-<td class='center-text'><%= parseInt(position,10)===999?"-":position %></td><td><%= name %><td><%= country %></td><td><img src="<%= flag %>"></td>
+<td class='center-text'><%= parseInt(position,10)===999?"-": parseInt(position,10)===998?"nc": position %></td><td><%= name %><td><%= country %></td><td><img src="<%= flag %>"></td>
 <td class='center-text'><%= time %><td class='center-text'><%= percentdown %></td>
 </script>
