@@ -68,7 +68,6 @@ private function importCSV($file) {
   // mainly for relays...
   // @ suppresses error report if file does not exist
   if (($handle = @fopen($file, "r")) !== false) {
-    echo "Processing CSV file.<br>";
     $results = new DB\SQL\Mapper($this->db, 'result');
     $names = new DB\SQL\Mapper($this->db, 'name');
     $races = new DB\SQL\Mapper($this->db, 'race');
@@ -336,13 +335,13 @@ private function processIOFV2XML() {
       }
 
       if ($personresult->Club) {
-        $country = $personresult->Club->Name;
+        $country = $personresult->Club->Country->Name;
         // trim '-1' from relay results
-        $country = str_replace('-1', '', $country);
-        // change Great Britain to GBR
-        if (strlen($country) > 3) {
-          $country = $this->getCountryCode($country);
-        }
+        // $country = str_replace('-1', '', $country);
+        // // change Great Britain to GBR
+        // if (strlen($country) > 3) {
+        //   $country = $this->getCountryCode($country);
+        // }
        } else {
         $country = "XXX";
       }
@@ -468,7 +467,7 @@ private function getV2Status($attrs) {
     case 'Disqualified':
       return 'DSQ';
     case 'MisPunch':
-      return 'DSQ';
+      return 'MP';
     case 'OverTime':
       return 'OT';
     case 'DidNotFinish':
