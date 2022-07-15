@@ -1,4 +1,4 @@
-// Version 0.5.0 2022-07-01T12:20:07+0100;
+// Version 0.6.0 2022-07-15T14:28:10+0100;
 /*
  * Maprunner  WOC Database
  * https://github.com/Maprunner/wocdb
@@ -685,6 +685,8 @@ var wocdb = (function (window, $) {
               }
               if (data === 999) {
                 return "-";
+              } else if (data === 998) {
+                return "nc";
               }
             }
             return data;
@@ -1296,6 +1298,8 @@ var wocdb = (function (window, $) {
               }
               if (data === 999) {
                 return "-";
+              } else if (data === 998) {
+                return "nc";
               }
             }
             return data;
@@ -1724,6 +1728,8 @@ var wocdb = (function (window, $) {
               }
               if (data === 999) {
                 return "-";
+              } else if (data === 998) {
+                return "nc";
               }
             }
             return data;

@@ -82,6 +82,8 @@
               }
               if (data === 999) {
                 return "-";
+              } else if (data === 998) {
+                return "nc";
               }
             }
             return data;
