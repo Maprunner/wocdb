@@ -80,8 +80,6 @@ module.exports = function (grunt) {
       }
     },
 
-    bumpup: 'package.json',
-
     clean: {
       minified: [jsConcatFile, jsMinFile]
     }
@@ -92,9 +90,6 @@ module.exports = function (grunt) {
   require('load-grunt-tasks')(grunt);
 
   grunt.registerTask('default', ['build']);
-
-  // increment minor version number: do anything else by editting package.json by hand
-  grunt.registerTask('bump', ['bumpup']);
 
   // grunt.registerTask('build', ['clean:minified', 'jshint:all', 'concat:js', 'uglify']);
   grunt.registerTask('build', ['clean:minified', 'csslint', 'jshint:all', 'concat:js', 'uglify']);
