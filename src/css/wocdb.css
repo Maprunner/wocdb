@@ -1,0 +1,357 @@
+.wocdb-banner {
+  background: url(../img/jwoc2009relay.jpg);
+  background-size: cover;
+  height: 200px;
+}
+
+.wocdb-banner h5 {
+  font-weight: 700;
+  color: white;
+  margin: 1rem;
+  font-size: 2rem;
+  text-shadow: 2px 2px 4px #000;
+}
+
+.wocdb-footer {
+  background-color: #ddd;
+  color: black;
+  border-top: 4px solid black;
+  box-shadow: 0 500px 0 500px #ddd;
+}
+
+.bg-wocdb {
+  background-color: #337ab7 !important;
+}
+
+.wocdb-logo {
+  padding: 10px 15px;
+  width: 100%;
+}
+
+.wocdb-dropdown {
+  height: 250px;
+  overflow-y: auto;
+}
+
+.footer-photo {
+  padding: 20px 0 0 20px;
+  width: 250px;
+  height: 217px;
+}
+
+.badge {
+  margin-left: 10px;
+}
+
+.flag {
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.flag-gold {
+  background-image: url("/wocdb/img/1.svg");
+}
+
+.flag-silver {
+  background-image: url("/wocdb/img/2.svg");
+}
+
+.flag-bronze {
+  background-image: url("/wocdb/img/3.svg");
+}
+
+.flag-arg {
+  background-image: url("/wocdb/img/ar.png");
+}
+
+.flag-aus {
+  background-image: url("/wocdb/img/au.png");
+}
+
+.flag-aut {
+  background-image: url("/wocdb/img/at.png");
+}
+
+.flag-aze {
+  background-image: url("/wocdb/img/az.png");
+}
+
+.flag-bar {
+  background-image: url("/wocdb/img/bb.png");
+}
+
+.flag-bel {
+  background-image: url("/wocdb/img/be.png");
+}
+
+.flag-blr {
+  background-image: url("/wocdb/img/by.png");
+}
+
+.flag-bra {
+  background-image: url("/wocdb/img/br.png");
+}
+
+.flag-brd {
+  background-image: url("/wocdb/img/xx.png");
+}
+
+.flag-bul {
+  background-image: url("/wocdb/img/bg.png");
+}
+
+.flag-cam {
+  background-image: url("/wocdb/img/cm.png");
+}
+
+.flag-can {
+  background-image: url("/wocdb/img/ca.png");
+}
+
+.flag-chi {
+  background-image: url("/wocdb/img/cl.png");
+}
+
+.flag-chn {
+  background-image: url("/wocdb/img/cn.png");
+}
+
+.flag-col {
+  background-image: url("/wocdb/img/co.png");
+}
+
+.flag-cro {
+  background-image: url("/wocdb/img/hr.png");
+}
+
+.flag-cyp {
+  background-image: url("/wocdb/img/cy.png");
+}
+
+.flag-cze {
+  background-image: url("/wocdb/img/cz.png");
+}
+
+.flag-den {
+  background-image: url("/wocdb/img/dk.png");
+}
+
+.flag-ecu {
+  background-image: url("/wocdb/img/ec.png");
+}
+
+.flag-egy {
+  background-image: url("/wocdb/img/eg.png");
+}
+
+.flag-esp {
+  background-image: url("/wocdb/img/es.png");
+}
+
+.flag-est {
+  background-image: url("/wocdb/img/ee.png");
+}
+
+.flag-fin {
+  background-image: url("/wocdb/img/fi.png");
+}
+
+.flag-fra {
+  background-image: url("/wocdb/img/fr.png");
+}
+
+.flag-frg {
+  background-image: url("/wocdb/img/xx.png");
+}
+
+.flag-gbr {
+  background-image: url("/wocdb/img/gb.png");
+}
+
+.flag-gdr {
+  background-image: url("/wocdb/img/xx.png");
+}
+
+.flag-geo {
+  background-image: url("/wocdb/img/ge.png");
+}
+
+.flag-ger {
+  background-image: url("/wocdb/img/de.png");
+}
+
+.flag-gre {
+  background-image: url("/wocdb/img/gr.png");
+}
+
+.flag-hkg {
+  background-image: url("/wocdb/img/hk.png");
+}
+
+.flag-hun {
+  background-image: url("/wocdb/img/hu.png");
+}
+
+.flag-irl {
+  background-image: url("/wocdb/img/ie.png");
+}
+
+.flag-isr {
+  background-image: url("/wocdb/img/il.png");
+}
+
+.flag-ita {
+  background-image: url("/wocdb/img/it.png");
+}
+
+.flag-jpn {
+  background-image: url("/wocdb/img/jp.png");
+}
+
+.flag-kaz {
+  background-image: url("/wocdb/img/kz.png");
+}
+
+.flag-ken {
+  background-image: url("/wocdb/img/ke.png");
+}
+
+.flag-kgz {
+  background-image: url("/wocdb/img/kg.png");
+}
+
+.flag-kor {
+  background-image: url("/wocdb/img/kr.png");
+}
+
+.flag-lat {
+  background-image: url("/wocdb/img/lv.png");
+}
+
+.flag-lie {
+  background-image: url("/wocdb/img/li.png");
+}
+
+.flag-ltu {
+  background-image: url("/wocdb/img/lt.png");
+}
+
+.flag-mda {
+  background-image: url("/wocdb/img/md.png");
+}
+
+.flag-mkd {
+  background-image: url("/wocdb/img/mk.png");
+}
+
+.flag-mne {
+  background-image: url("/wocdb/img/me.png");
+}
+
+.flag-ned {
+  background-image: url("/wocdb/img/nl.png");
+}
+
+.flag-nep {
+  background-image: url("/wocdb/img/np.png");
+}
+
+.flag-nor {
+  background-image: url("/wocdb/img/no.png");
+}
+
+.flag-nzl {
+  background-image: url("/wocdb/img/nz.png");
+}
+
+.flag-par {
+  background-image: url("/wocdb/img/py.png");
+}
+
+.flag-pol {
+  background-image: url("/wocdb/img/pl.png");
+}
+
+.flag-por {
+  background-image: url("/wocdb/img/pt.png");
+}
+
+.flag-prk {
+  background-image: url("/wocdb/img/kp.png");
+}
+
+.flag-rou {
+  background-image: url("/wocdb/img/ro.png");
+}
+
+.flag-rsa {
+  background-image: url("/wocdb/img/za.png");
+}
+
+.flag-rus {
+  background-image: url("/wocdb/img/ru.png");
+}
+
+.flag-scg {
+  background-image: url("/wocdb/img/xx.png");
+}
+
+.flag-slo {
+  background-image: url("/wocdb/img/si.png");
+}
+
+.flag-srb {
+  background-image: url("/wocdb/img/rs.png");
+}
+
+.flag-sui {
+  background-image: url("/wocdb/img/ch.png");
+}
+
+.flag-svk {
+  background-image: url("/wocdb/img/sk.png");
+}
+
+.flag-swe {
+  background-image: url("/wocdb/img/se.png");
+}
+
+.flag-tch {
+  background-image: url("/wocdb/img/xx.png");
+}
+
+.flag-tpe {
+  background-image: url("/wocdb/img/tw.png");
+}
+
+.flag-tur {
+  background-image: url("/wocdb/img/tr.png");
+}
+
+.flag-uga {
+  background-image: url("/wocdb/img/ug.png");
+}
+
+.flag-ukr {
+  background-image: url("/wocdb/img/ua.png");
+}
+
+.flag-urs {
+  background-image: url("/wocdb/img/xx.png");
+}
+
+.flag-uru {
+  background-image: url("/wocdb/img/uy.png");
+}
+
+.flag-usa {
+  background-image: url("/wocdb/img/us.png");
+}
+
+.flag-yug {
+  background-image: url("/wocdb/img/xx.png");
+}
+
+.flag-neu {
+  background-image: url("/wocdb/img/zz.png");
+}
