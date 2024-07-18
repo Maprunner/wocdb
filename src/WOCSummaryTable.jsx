@@ -26,8 +26,8 @@ const WOCSummaryTable = (props) => {
               <td>{rowData.country}</td>
               <td>{rowData.location}</td>
               <td>{rowData.dates}</td>
-              <td>{rowData.runners}</td>
               <td>{rowData.countries}</td>
+              <td>{rowData.runners}</td>
             </tr>
           </tbody>
         </Table>

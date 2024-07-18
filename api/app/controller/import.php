@@ -8,7 +8,7 @@ class Import
   private $type;
   private $xml;
 
-  // Called as //localhost/wocdb/import/<filetype>/<dir>/<wocid>/<save>
+  // Called as //localhost/wocdb/api/import/<filetype>/<dir>/<wocid>/<save>
 
   // if <save> is save then the db will be updated at the end of the import
   // for any other value, or if it is missing, the import will run but not update
@@ -25,6 +25,7 @@ class Import
     $this->db = $fff->get("db.instance");
 
     $dir = "C:/tmp/" . $fff->get('PARAMS.dir');
+
     $save = $fff->get('PARAMS.save');
     if ($save !== "save") {
       echo "Import test: db will not be updated<br>";
@@ -36,7 +37,7 @@ class Import
     $this->wocdata = $wocs->load(array('id=?', $this->wocid));
 
     $files = array_filter(scandir($dir), function ($item) {
-      return !is_dir($dir . $item);
+      return !is_dir($item);
     });
 
     // do this as a single transaction: much faster and avoids script timing out
@@ -45,7 +46,7 @@ class Import
     foreach ($files as $file) {
 
       $this->type = substr($file, 0, strpos($file, "-"));
-
+      echo "Type : " . $this->type . "<br>";
       if ($fff->get('PARAMS.filetype') === "xml") {
 
         if ($this->importXML($dir . "/" . $file)) {
@@ -157,7 +158,7 @@ class Import
         $results->year = $this->wocdata->year;
         $results->raceid = $races->id;
         $results->wocid = $this->wocid;
-        $results->final = $this->getFinalType();
+        $results->final = $this->getFinalType($classname);
         $results->nameid = $names->nameid;
         $results->personid = $names->personid;
         if (($results->final > 0) && ($results->final < 4)) {
@@ -275,7 +276,7 @@ class Import
         $results->year = $this->wocdata->year;
         $results->raceid = $races->id;
         $results->wocid = $this->wocid;
-        $results->final = $this->getFinalType();
+        $results->final = $this->getFinalType($classname);
         $results->nameid = $names->nameid;
         $results->personid = $names->personid;
         if (($results->final > 0) && ($results->final < 4)) {
@@ -316,7 +317,6 @@ class Import
       } else {
         $correctedclass = (substr($classname, 0, 1) == 'M') ? "Men" : "Women";
       }
-
       // create new race record
       $races->reset();
       // id is set automatically when race is saved
@@ -369,7 +369,8 @@ class Import
         }
 
         if ($personresult->Club) {
-          $country = $personresult->Club->Country->Name;
+          $attrs = $personresult->Person->Country->CountryId->attributes();
+          $country = (string) $attrs["value"];
           // trim '-1' from relay results
           // $country = str_replace('-1', '', $country);
           // // change Great Britain to GBR
@@ -423,12 +424,16 @@ class Import
         if (($this->type == 'SprintQual') || ($this->type == 'MiddleQual')) {
           $results->race = $this->type . '-' . $classname;
         } else {
-          $results->race = $this->type;
+          if ($this->type == "KOSprint") {
+            $results->race = $this->getKOType($classname);
+          } else {
+            $results->race = $this->type;
+          }
         }
         $results->year = $this->wocdata->year;
         $results->raceid = $races->id;
         $results->wocid = $this->wocid;
-        $results->final = $this->getFinalType();
+        $results->final = $this->getFinalType($classname);
         $results->nameid = $names->nameid;
         $results->personid = $names->personid;
         if ($results->final > 0) {
@@ -443,6 +448,8 @@ class Import
           $races->country = $results->country;
           $races->time = $results->time;
           $races->timeseconds = $results->seconds;
+          $races->final = $results->final;
+          $races->type = $results->race;
           if ($personresult->Result->CourseLength) {
             $races->distance = number_format(($personresult->Result->CourseLength) / 1000, 1);
           }
@@ -454,6 +461,19 @@ class Import
       // update race record
       $races->save();
     }
+  }
+
+  private function getKOType($classname)
+  {
+    if (($classname == "Men Final") || ($classname == "Women Final")) {
+      return "KOSprint";
+    }
+    $class = str_replace('Men ', '', $classname);
+    $class = str_replace('Women ', '', $class);
+    $class = str_replace(' ', '', $class);
+    $race = "KOSprintQual-" . $class;
+    echo $classname, $race, "</br>";
+    return $race;
   }
 
   private function getTimeFromSeconds($secs)
@@ -518,7 +538,7 @@ class Import
     }
   }
 
-  private function getFinalType()
+  private function getFinalType($classname)
   {
     switch ($this->type) {
       case "Long":
@@ -532,7 +552,11 @@ class Import
       case "SprintRelay":
         return 5;
       case "KOSprint":
-        return 6;
+        if (($classname == "Men Final") || ($classname == "Women Final")) {
+          return 6;
+        } else {
+          return 0;
+        }
       default:
         return 0;
     }
