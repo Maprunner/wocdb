@@ -13,7 +13,7 @@ Built with:
 
 npm install to make sure you have all necessary dependencies installed.
 
-npm run dev : this starts a vite development server which includes hot module reload.
+npm run start : this starts a vite development server which includes hot module reload.
 
 You need to be running a separate server to manage the API calls. At present this is assumed to be XAMPP or similar. In future I guess there should be a way of doing this in node.
 
