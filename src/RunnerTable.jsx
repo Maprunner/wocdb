@@ -64,7 +64,7 @@ const RunnerTable = (props) => {
       pagination={true}
       paginationPageSize={20}
       paginationPageSizeSelector={pageSizes}
-      onfirstDataRendered={autoSizeColumns}
+      onFirstDataRendered={autoSizeColumns}
       onModelUpdated={autoSizeColumns}
       onGridSizeChanged={autoSizeColumns}
       autoSizeStrategy={autoSizeStrategy}
@@ -73,7 +73,11 @@ const RunnerTable = (props) => {
       rowData={props.runners}
       columnDefs={columnDefs}
       defaultColDef={defaultColDef}
-      rowSelection="single"
+      rowSelection={{
+        mode: "singleRow",
+        checkboxes: false,
+        enableClickSelection: true,
+      }}
       reactiveCustomComponents={true}
       noRowsOverlayComponent={props.isFetching ? LoadingOverlay : undefined}
       noRowsOverlayComponentParams={

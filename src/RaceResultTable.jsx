@@ -59,7 +59,7 @@ const RaceResultTable = (props) => {
         <AgGridReact
           debug={import.meta.env.PROD ? undefined : true}
           ref={gridRef}
-          firstDataRendered={autoSizeColumns}
+          onFirstDataRendered={autoSizeColumns}
           onGridSizeChanged={autoSizeColumns}
           onModelUpdated={autoSizeColumns}
           autoSizeStrategy={autoSizeStrategy}

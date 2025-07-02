@@ -166,7 +166,7 @@ const FightTable = (props) => {
             <AgGridReact
               debug={import.meta.env.PROD ? undefined : true}
               ref={gridRef}
-              firstDataRendered={autoSizeColumns}
+              onFirstDataRendered={autoSizeColumns}
               onGridSizeChanged={autoSizeColumns}
               autoSizeStrategy={autoSizeStrategy}
               suppressColumnVirtualisation={true}
@@ -174,7 +174,11 @@ const FightTable = (props) => {
               rowData={props.results}
               columnDefs={columnDefs}
               defaultColDef={defaultColDef}
-              rowSelection="single"
+              rowSelection={{
+                mode: "singleRow",
+                checkboxes: false,
+                enableClickSelection: true,
+              }}
               reactiveCustomComponents={true}
               noRowsOverlayComponent={
                 props.isFetching ? LoadingOverlay : undefined
