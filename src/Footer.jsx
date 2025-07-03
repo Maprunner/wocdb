@@ -13,12 +13,12 @@ const Footer = () => (
           <p>
             The Maprunner WOC/JWOC database includes results from all WOCs
             (except B Finals) and JWOCs (except Qualification races, and
-            excluding second relay teams). Select a menu option to try out the
-            various queries available and see what you find. The information in
-            the database has come from a number of sources, but most notably the
-            records maintained by Bryan Teahan, Blair Trewin, the IOF, event
-            websites, CompassSport and Orienteering World. Flag icons courtesy
-            of{" "}
+            sometimes excluding second relay teams). Select a menu option to try
+            out the various queries available and see what you find. The
+            information in the database has come from a number of sources, but
+            most notably the records maintained by Bryan Teahan, Blair Trewin,
+            the IOF, event websites, CompassSport and Orienteering World. Flag
+            icons courtesy of{" "}
             <a
               href="http://www.IconDrawer.com"
               target="_blank"

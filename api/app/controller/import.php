@@ -16,8 +16,7 @@ class Import
   // Assumptions
   // 1: WOC already set up in woc table
   // 2: Files in XML format in c:\tmp\<dir>
-  // 3: Files named e.g. Long-xxx where text before - is race type: Long, Middle, Sprint, SprintQual, SprintRelay, Relay, KOSprintQual, KOSprint
-  // and xxx is anything
+  // 3: Files named: Long, Middle, Sprint, SprintQual, SprintRelay, Relay, KOSprintQual, KOSprint
   // 4: <filetype> is "csv" or "xml"
 
   public function importEvents($fff)
@@ -44,9 +43,10 @@ class Import
     $this->db->begin();
 
     foreach ($files as $file) {
-
-      $this->type = substr($file, 0, strpos($file, "-"));
+      // remove file format
+      $this->type = substr($file, 0, strpos($file, "."));
       echo "Type : " . $this->type . "<br>";
+
       if ($fff->get('PARAMS.filetype') === "xml") {
 
         if ($this->importXML($dir . "/" . $file)) {
@@ -65,8 +65,9 @@ class Import
       'SELECT DISTINCT personid FROM result WHERE wocid=:wocid',
       array(':wocid' => $this->wocid),
     ));
+    // IOF used for mixed teams in JWOC relays so exclude from count
     $countrycount = count($this->db->exec(
-      'SELECT DISTINCT country FROM result WHERE wocid=:wocid',
+      'SELECT DISTINCT country FROM result WHERE wocid=:wocid AND country<>"IOF"',
       array(':wocid' => $this->wocid),
     ));
     echo "Runners : " . $runnercount . "<br>";
@@ -202,6 +203,7 @@ class Import
       }
       $races->year = $this->wocdata->year;
       $races->class = $correctedclass;
+      $races->final = $this->final;
       $races->save();
 
       $firstrecord = true;

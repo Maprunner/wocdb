@@ -141,7 +141,11 @@ const NameTable = (props) => {
               rowData={props.results}
               columnDefs={columnDefs}
               defaultColDef={defaultColDef}
-              rowSelection="single"
+              rowSelection={{
+                mode: "singleRow",
+                checkboxes: false,
+                enableClickSelection: true,
+              }}
               reactiveCustomComponents={true}
               noRowsOverlayComponent={
                 props.isFetching ? LoadingOverlay : undefined

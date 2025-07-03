@@ -242,7 +242,11 @@ const SingleWOCTable = () => {
                   resultData={!isFetching && results ? results : []}
                   raceData={WOCData}
                   onNameSelected={onNameSelected}
-                  rowSelection="single"
+                  rowSelection={{
+                    mode: "singleRow",
+                    checkboxes: false,
+                    enableClickSelection: true,
+                  }}
                 />
               </Card.Body>
             </Card>

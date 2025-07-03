@@ -66,7 +66,7 @@ const BestTable = (props) => {
       pagination={true}
       paginationPageSize={20}
       paginationPageSizeSelector={pageSizes}
-      onfirstDataRendered={autoSizeColumns}
+      onFirstDataRendered={autoSizeColumns}
       onModelUpdated={autoSizeColumns}
       onGridSizeChanged={autoSizeColumns}
       autoSizeStrategy={autoSizeStrategy}
@@ -75,7 +75,11 @@ const BestTable = (props) => {
       rowData={props.results}
       columnDefs={columnDefs}
       defaultColDef={defaultColDef}
-      rowSelection="single"
+      rowSelection={{
+        mode: "singleRow",
+        checkboxes: false,
+        enableClickSelection: true,
+      }}
       reactiveCustomComponents={true}
       noRowsOverlayComponent={props.isFetching ? LoadingOverlay : undefined}
       noRowsOverlayComponentParams={

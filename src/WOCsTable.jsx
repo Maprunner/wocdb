@@ -107,7 +107,11 @@ const WOCsTable = () => {
               rowData={wocs}
               columnDefs={columnDefs}
               defaultColDef={defaultColDef}
-              rowSelection="single"
+              rowSelection={{
+                mode: "singleRow",
+                checkboxes: false,
+                enableClickSelection: true,
+              }}
             />
           </Card.Body>
         </Card>

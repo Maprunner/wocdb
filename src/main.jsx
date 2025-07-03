@@ -10,6 +10,17 @@ import "ag-grid-community/styles/ag-grid.css"
 import "ag-grid-community/styles/ag-theme-quartz.css"
 import "ag-grid-community/styles/ag-theme-balham.css"
 import "./css/wocdb.css"
+import {
+  AllCommunityModule,
+  ModuleRegistry,
+  provideGlobalGridOptions,
+} from "ag-grid-community"
+
+// Register all community features
+ModuleRegistry.registerModules([AllCommunityModule])
+
+// Mark all grids as using legacy themes
+provideGlobalGridOptions({ theme: "legacy" })
 
 export const store = configureStore({
   reducer: {
@@ -24,7 +35,13 @@ const root = ReactDOM.createRoot(document.getElementById("root"))
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <BrowserRouter basename="/wocdb">
+      <BrowserRouter
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+        basename="/wocdb"
+      >
         <Page />
       </BrowserRouter>
     </Provider>

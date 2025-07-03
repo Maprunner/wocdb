@@ -131,7 +131,7 @@ const MedalTableTotals = (props) => {
         debug={import.meta.env.PROD ? undefined : true}
         ref={gridRef}
         rowData={medals}
-        firstDataRendered={autoSizeColumns}
+        onFirstDataRendered={autoSizeColumns}
         onGridSizeChanged={autoSizeColumns}
         onModelUpdated={autoSizeColumns}
         columnDefs={columnDefs}

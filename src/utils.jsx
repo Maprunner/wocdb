@@ -57,13 +57,16 @@ export class positionRenderer {
 }
 
 export const formatPerCent = (params) => {
-  if (params.value === "0") {
+  // force to a string since we sometimes (what changed?) get numeric values which don't like indexOf
+  const value = "" + params.value
+
+  if (value === "0") {
     return ""
   }
-  if (params.value.indexOf(".") === -1) {
-    return params.value + ".0"
+  if (value.indexOf(".") === -1) {
+    return value + ".0"
   }
-  return params.value
+  return value
 }
 
 export const getFlagCSS = (params) => {
