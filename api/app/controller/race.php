@@ -28,7 +28,7 @@ class Race
     $db = $f3->get("db.instance");
     // need to be able to specify lower(x) to match url parameters to column names so use exec rather than a built-in function
     $params = array(':year' => $year, ':race' => $race, ':class' => $class, ':max' => $max, ':min' => $min);
-    $data = $db->exec('SELECT * FROM result JOIN name ON result.nameid=name.nameid WHERE year=:year AND lower(race)=:race AND lower(class)=:class AND wocid>:min AND wocid<:max ORDER BY position ASC, country ASC', $params);
+    $data = $db->exec('SELECT * FROM result JOIN name ON result.nameid=name.nameid WHERE year=:year AND lower(race)=:race AND lower(class)=:class AND wocid>:min AND wocid<:max ORDER BY position ASC, id ASC', $params);
     echo json_encode($data);
   }
 }
