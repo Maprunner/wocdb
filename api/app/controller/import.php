@@ -110,25 +110,37 @@ class Import
       $_TIME = 3;
       // Men, Women or Mixed
       $_CLASS = 4;
+      $_TYPE = 5;
       $classname = "";
+      $type = "";
+      $firstrow = true;
       while (($data = fgetcsv($handle, 0, ",")) !== false) {
-        if ($classname !== $data[$_CLASS]) {
+        // horrid hack: $results->position = $data[$_POSITION] for first row of csv file
+        // leaves $results->$position as 0 rather than the file value. No idea what is going on
+        // so just assume first row of a results file is 1st place. This used to work ok...
+        if ($firstrow) {
+          $data[$_POSITION] = 1;
+          $firstrow = false;
+        }
+        if ($classname !== $data[$_CLASS] || $type !== $data[$_TYPE]) {
           $classname = $data[$_CLASS];
-          echo "Adding class: " . $classname . "<br>";
+          $type = $data[$_TYPE];
+          echo "Adding class: " . $classname . " ". $type . "<br>";
           // create new race record
           $races->reset();
           // id is set automatically when race is saved
           $races->wocid = $this->wocid;
           $races->year = $this->wocdata->year;
           $races->class = $classname;
-          $races->type = $this->type;
+          $races->type = $type;
+          $results->final = $this->getFinalType($type);
           $races->winner = $data[$_NAME];
-          $races->country = $data[$_COUNTRY];
-          //  $races->country = $this->getCountryCode($data[$_COUNTRY]);
+          //$races->country = $data[$_COUNTRY];
+          $races->country = $this->getCountryCode($data[$_COUNTRY]);
           $races->time = $data[$_TIME];
           $races->timeseconds = 0;
-
           $races->save();
+          $winnerseconds = 0;
         }
         $name = $data[$_NAME];
         $names->load(array('name=?', $name));
@@ -146,24 +158,39 @@ class Import
           $names->save();
         }
         $results->reset();
-        $results->position = 1;
-        $results->position = $data[$_POSITION];
+        $pos = intval($data[$_POSITION]);
+        $results->position = $pos;
         $results->name = $name;
-        $results->country = $this->getCountryCode($data[$_COUNTRY]);
+        $results->country = $data[$_COUNTRY];
+        // $results->country = $this->getCountryCode($data[$_COUNTRY]);
         $results->time = $data[$_TIME];
-        $results->seconds = 0;
-        $results->secsdown = 0;
-        $results->percentdown = 0.0;
+        $results->seconds = $this->getSecondsFromTime($results->time);
+        if (($type != "Relay") && ($type != "SprintRelay")) {
+            if ($pos === 1) {
+            $winnerseconds = $results->seconds;
+            echo "Winner seconds " . $winnerseconds . "<br>";
+          }
+          $results->secsdown = max($results->seconds - $winnerseconds, 0);
+          if (($pos < 999) && ($winnerseconds > 0)) {
+            // save 1 decimal place
+            $results->percentdown = number_format(($results->secsdown / $winnerseconds) * 100, 1);
+          } else {
+            $results->percentdown = 0.0;
+          }
+        } else {
+           $results->secsdown = 0;
+            $results->percentdown = 0.0;
+        }
         $results->class = $classname;
-        $results->race = $this->type;
+        $results->race = $type;
         $results->year = $this->wocdata->year;
         $results->raceid = $races->id;
         $results->wocid = $this->wocid;
-        $results->final = $this->getFinalType($classname);
+        $results->final = $this->getFinalType($type);
         $results->nameid = $names->nameid;
         $results->personid = $names->personid;
         if (($results->final > 0) && ($results->final < 4)) {
-          $results->points = max(51 - $pos, 0);
+          $results->points = max(51 - $results->position, 0);
         } else {
           $results->points = 0;
         }
@@ -481,6 +508,19 @@ class Import
   private function getTimeFromSeconds($secs)
   {
     return sprintf("%02.2d:%02.2d", floor($secs / 60), $secs % 60);;
+  }
+  
+  private function getSecondsFromTime($time)
+  {
+    $seconds = 0;
+    $bits = explode(":", $time);
+    if (count($bits) === 3) {
+      return (intval($bits[0]) * 3600) + (intval($bits[1]) * 60) + intval($bits[2]);    }
+    if (count($bits) === 2) {
+      return (intval($bits[0]) * 60) + intval($bits[1]);
+    }
+    echo "Unexpected time format. Not hh:mm:sss or hhh:ss<br>";
+    return $seconds;
   }
 
   private function getPlainName($name)

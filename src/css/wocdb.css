@@ -240,6 +240,10 @@
   background-image: url("/wocdb/img/md.png");
 }
 
+.flag-mex {
+  background-image: url("/wocdb/img/mx.png");
+}
+
 .flag-mkd {
   background-image: url("/wocdb/img/mk.png");
 }
